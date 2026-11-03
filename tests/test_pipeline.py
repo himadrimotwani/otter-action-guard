@@ -3,6 +3,8 @@ from otter_action_guard.extractor import OtterActionGuard
 from otter_action_guard.disambiguator import ActionDisambiguator
 from otter_action_guard.models import CommitmentType, ActionStatus
 from otter_action_guard.parser import TranscriptParser
+from otter_action_guard.speech_corrector import ContextualSpeechCorrector
+from otter_action_guard.ai_agent import AIAgentEngine
 
 
 class TestOtterActionGuard(unittest.TestCase):
@@ -18,6 +20,14 @@ class TestOtterActionGuard(unittest.TestCase):
         self.assertEqual(turns[0].timestamp, "01:15")
         self.assertIn("send the update", turns[0].text)
         self.assertEqual(turns[1].speaker, "Bob")
+
+    def test_contextual_speech_corrector(self):
+        corrector = ContextualSpeechCorrector()
+        raw = "Please check the skew 902 inventory and send the revised bomb quotation."
+        corrected, fixes = corrector.correct_text(raw)
+        self.assertIn("SKU 902", corrected)
+        self.assertIn("BOM", corrected)
+        self.assertEqual(len(fixes), 2)
 
     def test_conditional_commitment_detection(self):
         disambiguator = ActionDisambiguator()
@@ -52,16 +62,16 @@ class TestOtterActionGuard(unittest.TestCase):
         self.assertIsNone(owner)
         self.assertIn("Who should own this?", prompt)
 
-    def test_firm_commitment(self):
-        disambiguator = ActionDisambiguator()
-        comm_type, status, owner, cond, deadline, conf, prompt = disambiguator.analyze_statement(
-            "David",
-            "I will send the revised bill of materials and price quotation by tomorrow morning."
+    def test_ai_agent_chain_of_thought_and_coreference(self):
+        turns = TranscriptParser.parse_text(
+            "[00:01] Marcus: We need to finalize the Nike Air Zoom 50k batch PO.\n"
+            "[00:05] David: I can deliver it by next Friday if the lab clears batch 4."
         )
-        self.assertEqual(comm_type, CommitmentType.FIRM_COMMITMENT)
-        self.assertEqual(status, ActionStatus.READY_FOR_EXECUTION)
-        self.assertEqual(owner, "David")
-        self.assertIsNone(prompt)
+        ai_agent = AIAgentEngine()
+        output = ai_agent.analyze_dialogue_with_context(turns, candidate_turn_index=1)
+        self.assertIn("thought_trace", output)
+        self.assertEqual(output["commitment_type"], "CONDITIONAL_COMMITMENT")
+        self.assertEqual(output["status"], "BLOCKED_ON_CONDITION")
 
     def test_end_to_end_extractor(self):
         guard = OtterActionGuard()

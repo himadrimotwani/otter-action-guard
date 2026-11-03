@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 """
 OtterActionGuard Demo
-Run: python demo.py
-Demonstrates meeting-to-action disambiguation, conditional tracking,
-and Model Context Protocol (MCP) payload generation on supply-chain and engineering transcripts.
+Run: python3 demo.py
+
+Demonstrates:
+1. Contextual ASR Speech Correction (recovering acoustic phoneme errors like 'bomb' -> 'BOM', 'skew' -> 'SKU')
+2. Multi-turn AI Agent Coreference & Chain-of-Thought (CoT) Deliberation
+3. Gated Model Context Protocol (MCP) Enterprise Tool Dispatch
 """
 
 import json
@@ -14,9 +17,9 @@ from otter_action_guard.models import ActionStatus
 
 
 def run_demo():
-    print("=" * 80)
-    print(" 🦦 OtterActionGuard: Meeting-to-Action Disambiguation & Verification Engine")
-    print("=" * 80)
+    print("=" * 85)
+    print(" 🦦 OtterActionGuard: AI Agent Meeting-to-Action Disambiguation Engine")
+    print("=" * 85)
 
     data_path = Path(__file__).parent / "data" / "sample_transcripts.json"
     if not data_path.exists():
@@ -31,13 +34,13 @@ def run_demo():
 
     for idx, sample in enumerate(samples, 1):
         print(f"\n[{idx}] SCENARIO: {sample['title']} (ID: {sample['meeting_id']})")
-        print("-" * 80)
-        print("RAW TRANSCRIPT SNIPPET:")
+        print("-" * 85)
+        print("RAW TRANSCRIPT (Showing first 4 lines with raw speech ASR artifacts):")
         for line in sample["transcript"].strip().split("\n")[:4]:
             print(f"  {line}")
         print("  ... [truncated for display]")
 
-        # Process with OtterActionGuard
+        # Run extraction pipeline
         result = guard.process_transcript(
             sample["transcript"],
             meeting_id=sample["meeting_id"],
@@ -46,38 +49,43 @@ def run_demo():
 
         metrics = evaluator.evaluate_transcript(sample["transcript"], title=sample["title"])
 
-        print("\n📊 BENCHMARK COMPARISON:")
-        print(f"  • Total Speaker Turns Analyzed        : {result.total_turns}")
-        print(f"  • Naive LLM Actions (Flat Extraction)  : {metrics['naive_action_count']} (Treats tentative ideas as commitments)")
-        print(f"  • OtterActionGuard Verified Actions   : {result.ready_count} READY FOR DISPATCH")
-        print(f"  • Conditional Actions Gated           : {result.blocked_count} (Requires prerequisite before execution)")
-        print(f"  • Unassigned / Ambiguous Tasks Flagged: {result.clarification_count} (Prompt drafted for in-call assist)")
-        print(f"  🛡️ PREMATURE TICKET EXECUTIONS BLOCKED: {metrics['premature_executions_prevented']}")
+        print(f"\n🎙️ 1. CONTEXTUAL SPEECH ASR REPAIR:")
+        print(f"  • Acoustic / Phonetic Corrections Applied: {result.speech_corrections_made} domain terms repaired")
 
-        print("\n🔍 DETAILED ACTION DISAMBIGUATION BREAKDOWN:")
+        print(f"\n📊 2. AI BENCHMARK COMPARISON:")
+        print(f"  • Total Speaker Turns Analyzed          : {result.total_turns}")
+        print(f"  • Naive LLM Actions (Flat Extraction)    : {metrics['naive_action_count']} (mistakes ideas & conditional chat for commitments)")
+        print(f"  • OtterActionGuard Verified Actions     : {result.ready_count} READY FOR DISPATCH")
+        print(f"  • Conditional Actions Gated             : {result.blocked_count} (Prerequisites locked prior to execution)")
+        print(f"  • Unassigned / Ambiguous Tasks Flagged  : {result.clarification_count} (Otter Live Assist prompt generated)")
+        print(f"  🛡️ PREMATURE ENTERPRISE ACTIONS PREVENTED: {metrics['premature_executions_prevented']}")
+
+        print(f"\n🧠 3. AI AGENT REASONING TRACE (CHAIN-OF-THOUGHT & COREFERENCE):")
         for action in result.actions:
             status_symbol = "✅" if action.status == ActionStatus.READY_FOR_EXECUTION else (
                 "⏳" if action.status == ActionStatus.BLOCKED_ON_CONDITION else (
                     "❓" if action.status == ActionStatus.NEEDS_HUMAN_CLARIFICATION else "💡"
                 )
             )
-            print(f"  [{action.id}] {status_symbol} [{action.status.value}] ({action.commitment_type.value})")
-            print(f"      Speaker: {action.speaker} | Owner: {action.assigned_to or 'UNASSIGNED'}")
-            print(f"      Quote  : \"{action.raw_statement}\"")
+            print(f"\n  [{action.id}] {status_symbol} {action.status.value} ({action.commitment_type.value})")
+            print(f"      Speaker : {action.speaker} | Assigned: {action.assigned_to or 'UNASSIGNED'}")
+            print(f"      Quote   : \"{action.raw_statement}\"")
+            if action.thought_trace:
+                print(f"      💭 CoT  : {action.thought_trace}")
             if action.prerequisite_condition:
-                print(f"      ⚠️  Gating Condition : {action.prerequisite_condition}")
+                print(f"      ⚠️ Gate : {action.prerequisite_condition}")
             if action.clarification_prompt:
-                print(f"      💬 Live Assist Prompt: {action.clarification_prompt}")
+                print(f"      💬 Ping : {action.clarification_prompt}")
 
-        print("\n🔌 MODEL CONTEXT PROTOCOL (MCP) DISPATCH PAYLOADS:")
+        print(f"\n🔌 4. MODEL CONTEXT PROTOCOL (MCP) TOOL EXECUTION PAYLOADS:")
         for payload in result.mcp_payloads[:2]:
-            approval_badge = "[MANUAL APPROVAL REQUIRED]" if payload.requires_approval else "[AUTO-APPROVED]"
-            print(f"  • Tool: {payload.tool_name} {approval_badge}")
+            badge = "[MANUAL APPROVAL REQUIRED]" if payload.requires_approval else "[AUTO-APPROVED]"
+            print(f"  • Tool: {payload.tool_name} {badge}")
             print(f"    Params: {json.dumps(payload.parameters, indent=6)}")
 
-        print("=" * 80)
+        print("=" * 85)
 
-    print("\n✅ Demo finished successfully.")
+    print("\n✅ Demo completed successfully.")
 
 
 if __name__ == "__main__":

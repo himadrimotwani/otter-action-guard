@@ -30,7 +30,7 @@ class ActionDisambiguator:
 
     # Cues for delegation
     DELEGATION_REGEX = re.compile(
-        r"\b(can you|could you please|please make sure to|let's have\s+([A-Z][a-z]+)\s+take care of|assign\s+(?:this\s+)?to\s+([A-Z][a-z]+))\b",
+        r"(?:([A-Z][a-z]+),\s+)?\b(can you|could you please|please make sure to|let's have\s+([A-Z][a-z]+)\s+take care of|assign\s+(?:this\s+)?to\s+([A-Z][a-z]+))\b",
         re.IGNORECASE
     )
 
@@ -112,7 +112,7 @@ class ActionDisambiguator:
         deleg_match = self.DELEGATION_REGEX.search(cleaned)
         if deleg_match:
             # Try to grab the named delegate if captured
-            named_delegate = deleg_match.group(2) or deleg_match.group(3)
+            named_delegate = deleg_match.group(1) or deleg_match.group(3) or (deleg_match.group(4) if len(deleg_match.groups()) >= 4 else None)
             assigned_to = named_delegate if named_delegate else "Unassigned Delegate"
             prompt = f"{speaker} delegated this request. Awaiting acceptance from {assigned_to} before dispatching."
             return (

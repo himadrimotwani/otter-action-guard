@@ -42,7 +42,9 @@ class ActionItem:
     confidence_score: float = 1.0
     status: ActionStatus = ActionStatus.READY_FOR_EXECUTION
     clarification_prompt: Optional[str] = None
-    suggested_integration: Optional[str] = None  # e.g. "jira", "slack", "erp", "calendar"
+    suggested_integration: Optional[str] = None
+    thought_trace: Optional[str] = None               # AI Chain-of-Thought reasoning trace
+    coreference_resolution: Optional[Dict[str, str]] = None # AI-resolved pronouns / entity antecedents
 
     def to_dict(self) -> Dict[str, Any]:
         d = asdict(self)
@@ -72,6 +74,7 @@ class MeetingAnalysisResult:
     ready_count: int
     blocked_count: int
     clarification_count: int
+    speech_corrections_made: int = 0
     actions: List[ActionItem] = field(default_factory=list)
     mcp_payloads: List[MCPActionPayload] = field(default_factory=list)
 
@@ -84,6 +87,7 @@ class MeetingAnalysisResult:
             "ready_count": self.ready_count,
             "blocked_count": self.blocked_count,
             "clarification_count": self.clarification_count,
+            "speech_corrections_made": self.speech_corrections_made,
             "actions": [a.to_dict() for a in self.actions],
             "mcp_payloads": [p.to_dict() for p in self.mcp_payloads]
         }
