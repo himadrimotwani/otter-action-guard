@@ -83,6 +83,18 @@ def run_demo():
             print(f"  • Tool: {payload.tool_name} {badge}")
             print(f"    Params: {json.dumps(payload.parameters, indent=6)}")
 
+        if result.coach_summary:
+            print(f"\n🎯 5. MEETING COACH & PRESENTATION DYNAMICS:")
+            print(f"  • Interaction Balance Score : {result.coach_summary.interaction_balance_score * 100:.0f}% (100% = perfectly even distribution)")
+            print(f"  • Estimated Dialogue Pace   : {result.coach_summary.pace_wpm_estimate} words/minute")
+            print("  • Talk-Time Distribution    :")
+            for spk in result.coach_summary.speaker_metrics:
+                bar = "█" * int(spk.talk_time_pct // 5)
+                print(f"    - {spk.speaker:<22} : {spk.talk_time_pct:>5.1f}% | {spk.word_count:>3} words | {bar}")
+            print("  • AI Coaching Feedback      :")
+            for tip in result.coach_summary.coaching_tips:
+                print(f"    💡 {tip}")
+
         print("=" * 85)
 
     print("\n✅ Demo completed successfully.")

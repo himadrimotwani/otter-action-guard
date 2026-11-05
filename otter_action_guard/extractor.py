@@ -6,6 +6,7 @@ from .disambiguator import ActionDisambiguator
 from .mcp_bridge import MCPActionBridge
 from .speech_corrector import ContextualSpeechCorrector
 from .ai_agent import AIAgentEngine
+from .meeting_coach import MeetingCoach
 
 
 class OtterActionGuard:
@@ -28,6 +29,7 @@ class OtterActionGuard:
         self.disambiguator = ActionDisambiguator()
         self.ai_agent = AIAgentEngine(provider=ai_provider)
         self.bridge = MCPActionBridge()
+        self.coach = MeetingCoach()
 
     def process_transcript(
         self,
@@ -131,6 +133,9 @@ class OtterActionGuard:
         blocked_count = sum(1 for a in actions if a.status == ActionStatus.BLOCKED_ON_CONDITION)
         clarification_count = sum(1 for a in actions if a.status == ActionStatus.NEEDS_HUMAN_CLARIFICATION)
 
+        # Step 5: Speaking Dynamics & Presentation Coaching Analysis
+        coach_summary = self.coach.analyze(turns)
+
         return MeetingAnalysisResult(
             meeting_id=meeting_id,
             title=title,
@@ -141,5 +146,6 @@ class OtterActionGuard:
             clarification_count=clarification_count,
             speech_corrections_made=total_corrections,
             actions=actions,
-            mcp_payloads=mcp_payloads
+            mcp_payloads=mcp_payloads,
+            coach_summary=coach_summary
         )

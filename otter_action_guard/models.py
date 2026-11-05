@@ -66,6 +66,34 @@ class MCPActionPayload:
 
 
 @dataclass
+class SpeakerMetric:
+    speaker: str
+    word_count: int
+    talk_time_pct: float
+    turn_count: int
+    monologue_count: int
+
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass
+class MeetingCoachSummary:
+    speaker_metrics: List[SpeakerMetric] = field(default_factory=list)
+    pace_wpm_estimate: int = 145
+    interaction_balance_score: float = 1.0
+    coaching_tips: List[str] = field(default_factory=list)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "speaker_metrics": [m.to_dict() for m in self.speaker_metrics],
+            "pace_wpm_estimate": self.pace_wpm_estimate,
+            "interaction_balance_score": self.interaction_balance_score,
+            "coaching_tips": self.coaching_tips
+        }
+
+
+@dataclass
 class MeetingAnalysisResult:
     meeting_id: str
     title: str
@@ -77,6 +105,7 @@ class MeetingAnalysisResult:
     speech_corrections_made: int = 0
     actions: List[ActionItem] = field(default_factory=list)
     mcp_payloads: List[MCPActionPayload] = field(default_factory=list)
+    coach_summary: Optional[MeetingCoachSummary] = None
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -89,5 +118,6 @@ class MeetingAnalysisResult:
             "clarification_count": self.clarification_count,
             "speech_corrections_made": self.speech_corrections_made,
             "actions": [a.to_dict() for a in self.actions],
-            "mcp_payloads": [p.to_dict() for p in self.mcp_payloads]
+            "mcp_payloads": [p.to_dict() for p in self.mcp_payloads],
+            "coach_summary": self.coach_summary.to_dict() if self.coach_summary else None
         }

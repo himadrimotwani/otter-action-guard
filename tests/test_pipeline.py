@@ -73,6 +73,21 @@ class TestOtterActionGuard(unittest.TestCase):
         self.assertEqual(output["commitment_type"], "CONDITIONAL_COMMITMENT")
         self.assertEqual(output["status"], "BLOCKED_ON_CONDITION")
 
+    def test_meeting_coach_analytics(self):
+        turns = TranscriptParser.parse_text(
+            "[00:01] Alice: I will review the architecture and lead the supplier sync.\n"
+            "[00:15] Bob: Perfect, we will deliver the batch if QA approves."
+        )
+        guard = OtterActionGuard()
+        result = guard.process_transcript(
+            "[00:01] Alice: I will review the architecture and lead the supplier sync.\n"
+            "[00:15] Bob: Perfect, we will deliver the batch if QA approves."
+        )
+        self.assertIsNotNone(result.coach_summary)
+        self.assertEqual(len(result.coach_summary.speaker_metrics), 2)
+        self.assertGreaterEqual(result.coach_summary.interaction_balance_score, 0.5)
+        self.assertGreaterEqual(len(result.coach_summary.coaching_tips), 1)
+
     def test_end_to_end_extractor(self):
         guard = OtterActionGuard()
         sample = (

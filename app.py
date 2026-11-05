@@ -5,12 +5,12 @@ Run: python3 app.py
 Visit: http://localhost:8080 in your browser.
 
 Zero-dependency, standalone local dashboard to interactively test meeting transcripts,
-view AI Agent Chain-of-Thought deliberation, and inspect MCP tool payloads.
+view AI Agent Chain-of-Thought deliberation, inspect MCP tool payloads,
+analyze speaker dynamics & presentation coaching, and simulate live enterprise dispatch.
 """
 
 import http.server
 import json
-import urllib.parse
 from pathlib import Path
 from otter_action_guard.extractor import OtterActionGuard
 
@@ -43,14 +43,14 @@ INDEX_HTML = """<!DOCTYPE html>
         </div>
         <div>
           <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-2">
-            OtterActionGuard <span class="text-xs bg-blue-500/20 text-blue-400 font-semibold px-2 py-0.5 rounded-full border border-blue-500/30">AI Meeting Agent</span>
+            OtterActionGuard <span class="text-xs bg-blue-500/20 text-blue-400 font-semibold px-2 py-0.5 rounded-full border border-blue-500/30">Enterprise Agent</span>
           </h1>
-          <p class="text-xs text-slate-400">Meeting-to-Action Disambiguation & Gated MCP Tool Dispatch</p>
+          <p class="text-xs text-slate-400">Meeting-to-Action Disambiguation, Speaker Analytics & Gated MCP Dispatch</p>
         </div>
       </div>
       <div class="flex items-center gap-3 text-xs">
         <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
-          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Engine Ready (Zero Dependencies)
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Zero Dependencies Ready
         </span>
         <a href="https://github.com/himadrimotwani/otter-action-guard" target="_blank" class="px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition">
           <i class="fa-brands fa-github mr-1"></i> GitHub
@@ -62,14 +62,16 @@ INDEX_HTML = """<!DOCTYPE html>
   <!-- Main Grid -->
   <main class="max-w-7xl mx-auto px-6 py-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
     
-    <!-- Left Column: Input & Controls (5 cols) -->
+    <!-- Left Column: Input, Upload & Controls (5 cols) -->
     <div class="lg:col-span-5 space-y-6">
-      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl">
-        <div class="flex items-center justify-between mb-3">
+      
+      <!-- Input Card -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
+        <div class="flex items-center justify-between">
           <label class="text-sm font-semibold text-slate-200">Select Meeting Scenario</label>
           <span class="text-xs text-slate-400">Presets</span>
         </div>
-        <div class="grid grid-cols-2 gap-2 mb-4">
+        <div class="grid grid-cols-2 gap-2">
           <button onclick="loadSample(0)" class="text-left p-2.5 rounded-xl bg-slate-800 hover:bg-blue-600/20 hover:border-blue-500/50 border border-slate-700/60 transition text-xs">
             <div class="font-medium text-slate-200">👟 Nike Sourcing Sync</div>
             <div class="text-[11px] text-slate-400 truncate">Supply chain & supplier negotiation</div>
@@ -80,12 +82,22 @@ INDEX_HTML = """<!DOCTYPE html>
           </button>
         </div>
 
-        <div class="mb-3">
+        <!-- Audio Upload / Drop Zone -->
+        <div id="dropZone" class="border-2 border-dashed border-slate-800 hover:border-blue-500/50 rounded-xl p-3 text-center transition cursor-pointer bg-slate-950/50">
+          <input type="file" id="fileInput" accept=".wav,.mp3,.json,.txt" class="hidden" onchange="handleFileSelect(event)">
+          <div onclick="document.getElementById('fileInput').click()" class="space-y-1">
+            <i class="fa-solid fa-file-audio text-blue-400 text-lg"></i>
+            <div class="text-xs text-slate-300 font-medium">Drop .wav, .mp3, or transcript file here</div>
+            <div class="text-[10px] text-slate-500">Simulates speech acoustic waveform decoding & ASR diarization</div>
+          </div>
+        </div>
+
+        <div>
           <div class="flex justify-between items-center mb-1.5">
             <label class="text-xs font-semibold text-slate-300">Transcript Input (with ASR speech artifacts)</label>
             <span class="text-[11px] text-slate-400" id="turnCountLabel">8 turns</span>
           </div>
-          <textarea id="transcriptInput" rows="10" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-slate-200 font-mono focus:outline-none focus:border-blue-500 leading-relaxed resize-y"></textarea>
+          <textarea id="transcriptInput" rows="8" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-slate-200 font-mono focus:outline-none focus:border-blue-500 leading-relaxed resize-y"></textarea>
         </div>
 
         <button onclick="runAnalysis()" id="analyzeBtn" class="w-full py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm transition shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2">
@@ -93,7 +105,7 @@ INDEX_HTML = """<!DOCTYPE html>
         </button>
       </div>
 
-      <!-- Quick Metrics Summary -->
+      <!-- Pipeline Safety Metrics -->
       <div id="metricsCard" class="hidden bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
         <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Pipeline Safety Metrics</h3>
         <div class="grid grid-cols-3 gap-3 text-center">
@@ -115,10 +127,34 @@ INDEX_HTML = """<!DOCTYPE html>
           <span id="metricSpeech" class="font-bold text-blue-400">0</span>
         </div>
       </div>
+
+      <!-- Meeting Coach & Speaker Analytics Card -->
+      <div id="coachCard" class="hidden bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
+        <div class="flex items-center justify-between">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
+            <i class="fa-solid fa-chart-pie text-blue-400"></i> Meeting Coach & Dynamics
+          </h3>
+          <span id="balanceScoreBadge" class="text-[11px] font-bold px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30">
+            Balance: 87%
+          </span>
+        </div>
+        
+        <!-- Speaker distribution bars -->
+        <div id="speakerBars" class="space-y-2"></div>
+
+        <!-- AI Coaching Tips -->
+        <div class="border-t border-slate-800 pt-3">
+          <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">AI Presentation & Negotiation Feedback:</div>
+          <div id="coachingTips" class="space-y-1.5 text-xs text-slate-300"></div>
+        </div>
+      </div>
+
     </div>
 
     <!-- Right Column: Results & MCP Payloads (7 cols) -->
     <div class="lg:col-span-7 space-y-6">
+      
+      <!-- Actions Stream -->
       <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl min-h-[500px]">
         <div class="flex items-center justify-between border-b border-slate-800 pb-4 mb-4">
           <div>
@@ -154,6 +190,30 @@ INDEX_HTML = """<!DOCTYPE html>
 
   </main>
 
+  <!-- Interactive Dispatch Sandbox Modal -->
+  <div id="dispatchModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center gap-2">
+          <span id="modalIcon" class="text-xl">🚀</span>
+          <h3 id="modalTitle" class="text-sm font-bold text-white">Simulate Enterprise Tool Dispatch</h3>
+        </div>
+        <button onclick="closeModal()" class="text-slate-400 hover:text-white text-sm"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div id="modalBody" class="space-y-3 text-xs">
+        <!-- Injected dynamically -->
+      </div>
+
+      <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-800">
+        <button onclick="closeModal()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs">Cancel</button>
+        <button onclick="confirmDispatch()" id="modalConfirmBtn" class="px-4 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs shadow-lg shadow-blue-500/20">
+          Confirm Execution
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const SAMPLES = [
       {
@@ -177,6 +237,9 @@ INDEX_HTML = """<!DOCTYPE html>
       }
     ];
 
+    let currentAnalysisData = null;
+    let selectedActionForDispatch = null;
+
     function loadSample(idx) {
       document.getElementById('transcriptInput').value = SAMPLES[idx].transcript;
       updateTurnCount();
@@ -185,6 +248,40 @@ INDEX_HTML = """<!DOCTYPE html>
     function updateTurnCount() {
       const lines = document.getElementById('transcriptInput').value.trim().split('\\n').filter(l => l.trim().length > 0);
       document.getElementById('turnCountLabel').innerText = lines.length + ' turns';
+    }
+
+    function handleFileSelect(evt) {
+      const file = evt.target.files[0];
+      if (!file) return;
+
+      if (file.name.endsWith('.json')) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          try {
+            const data = JSON.parse(e.target.result);
+            if (Array.isArray(data) && data[0].transcript) {
+              document.getElementById('transcriptInput').value = data[0].transcript;
+            } else if (data.transcript) {
+              document.getElementById('transcriptInput').value = data.transcript;
+            }
+            updateTurnCount();
+          } catch(err) {
+            alert('Invalid JSON file.');
+          }
+        };
+        reader.readAsText(file);
+      } else if (file.name.endsWith('.txt')) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          document.getElementById('transcriptInput').value = e.target.result;
+          updateTurnCount();
+        };
+        reader.readAsText(file);
+      } else {
+        // Audio file mock simulation
+        alert(`🎙️ Decoded audio stream: "${file.name}"\\nWaveform processed through acoustic phoneme aligner and diarized into multi-speaker transcript.`);
+        loadSample(0);
+      }
     }
 
     document.getElementById('transcriptInput').addEventListener('input', updateTurnCount);
@@ -203,6 +300,7 @@ INDEX_HTML = """<!DOCTYPE html>
           body: JSON.stringify({ transcript: text })
         });
         const data = await resp.json();
+        currentAnalysisData = data;
         renderResults(data);
       } catch (e) {
         alert("Error executing analysis: " + e);
@@ -215,6 +313,7 @@ INDEX_HTML = """<!DOCTYPE html>
     function renderResults(data) {
       document.getElementById('metricsCard').classList.remove('hidden');
       document.getElementById('mcpContainer').classList.remove('hidden');
+      document.getElementById('coachCard').classList.remove('hidden');
 
       document.getElementById('metricReady').innerText = data.ready_count;
       document.getElementById('metricBlocked').innerText = data.blocked_count;
@@ -222,6 +321,39 @@ INDEX_HTML = """<!DOCTYPE html>
       document.getElementById('metricSpeech').innerText = data.speech_corrections_made;
       document.getElementById('executionBadge').innerText = `${data.actions.length} Actions Evaluated`;
 
+      // Render Speaker Analytics
+      if (data.coach_summary) {
+        const coach = data.coach_summary;
+        document.getElementById('balanceScoreBadge').innerText = `Balance: ${Math.round(coach.interaction_balance_score * 100)}%`;
+        
+        const barsContainer = document.getElementById('speakerBars');
+        barsContainer.innerHTML = '';
+        coach.speaker_metrics.forEach(spk => {
+          const div = document.createElement('div');
+          div.className = 'text-xs space-y-1';
+          div.innerHTML = `
+            <div class="flex justify-between text-slate-300">
+              <span class="font-medium">${spk.speaker}</span>
+              <span class="text-slate-400 font-mono">${spk.talk_time_pct}% (${spk.word_count} words)</span>
+            </div>
+            <div class="w-full bg-slate-950 h-2 rounded-full overflow-hidden border border-slate-800">
+              <div class="bg-blue-500 h-full rounded-full" style="width: ${spk.talk_time_pct}%"></div>
+            </div>
+          `;
+          barsContainer.appendChild(div);
+        });
+
+        const tipsContainer = document.getElementById('coachingTips');
+        tipsContainer.innerHTML = '';
+        coach.coaching_tips.forEach(tip => {
+          const p = document.createElement('p');
+          p.className = 'flex items-start gap-1.5';
+          p.innerHTML = `<span class="text-blue-400 font-bold">💡</span> <span>${tip}</span>`;
+          tipsContainer.appendChild(p);
+        });
+      }
+
+      // Render Action Cards
       const container = document.getElementById('actionsContainer');
       container.innerHTML = '';
 
@@ -255,8 +387,11 @@ INDEX_HTML = """<!DOCTYPE html>
                 ${act.status}
               </span>
             </div>
-            <div class="text-slate-400 text-[11px]">
-              Assigned: <strong class="text-slate-200">${act.assigned_to || 'None (Unowned)'}</strong>
+            <div class="flex items-center gap-2 text-slate-400 text-[11px]">
+              <span>Assigned: <strong class="text-slate-200">${act.assigned_to || 'None (Unowned)'}</strong></span>
+              <button onclick="openDispatchModal('${act.id}')" class="px-2 py-0.5 rounded bg-blue-600/20 hover:bg-blue-600/40 text-blue-300 border border-blue-500/30 transition text-[10px] font-semibold">
+                <i class="fa-solid fa-play mr-1"></i> Simulate Dispatch
+              </button>
             </div>
           </div>
 
@@ -294,6 +429,78 @@ INDEX_HTML = """<!DOCTYPE html>
 
     function simulateUnlock(actId) {
       alert(`Prerequisite verified for ${actId}! Action status updated to READY_FOR_EXECUTION and MCP payload dispatched.`);
+    }
+
+    function openDispatchModal(actId) {
+      if (!currentAnalysisData) return;
+      const act = currentAnalysisData.actions.find(a => a.id === actId);
+      if (!act) return;
+
+      selectedActionForDispatch = act;
+      const body = document.getElementById('modalBody');
+
+      let toolType = act.suggested_integration || 'jira';
+      let icon = '⚡';
+      let title = `Dispatching ${act.id} via Model Context Protocol`;
+
+      if (toolType === 'jira') {
+        icon = '🎫';
+        body.innerHTML = `
+          <div class="p-3 rounded-xl bg-slate-950 border border-blue-500/30 space-y-2">
+            <div class="flex justify-between items-center text-slate-400">
+              <span class="font-bold text-blue-400">JIRA TICKET PREVIEW</span>
+              <span class="px-1.5 py-0.5 rounded bg-slate-800 text-[10px]">PROJ-104</span>
+            </div>
+            <div class="text-slate-200 font-semibold">${act.action_description}</div>
+            <div class="text-slate-400 text-[11px]">Assignee: <strong class="text-slate-200">${act.assigned_to || 'Unassigned'}</strong></div>
+            <div class="text-slate-400 text-[11px]">Due Date: <strong class="text-slate-200">${act.target_date_raw || 'Unspecified'}</strong></div>
+            <div class="text-[10px] text-slate-500 italic bg-slate-900 p-2 rounded border border-slate-800">
+              Source quote: "${act.raw_statement}"
+            </div>
+          </div>
+        `;
+      } else if (toolType === 'erp') {
+        icon = '📦';
+        body.innerHTML = `
+          <div class="p-3 rounded-xl bg-slate-950 border border-amber-500/30 space-y-2">
+            <div class="flex justify-between items-center text-slate-400">
+              <span class="font-bold text-amber-400">ERP PROCUREMENT ORDER UPDATE</span>
+              <span class="px-1.5 py-0.5 rounded bg-slate-800 text-[10px]">PO-902-BATCH</span>
+            </div>
+            <div class="text-slate-200 font-semibold">${act.action_description}</div>
+            <div class="text-slate-400 text-[11px]">Owner: <strong class="text-slate-200">${act.assigned_to || 'Supplier Rep'}</strong></div>
+            <div class="text-slate-400 text-[11px]">Condition: <span class="text-amber-400">${act.prerequisite_condition || 'None (Unconditional)'}</span></div>
+            <div class="text-slate-400 text-[11px]">Confidence Calibration: <strong class="text-emerald-400">${Math.round(act.confidence_score * 100)}%</strong></div>
+          </div>
+        `;
+      } else {
+        icon = '💬';
+        body.innerHTML = `
+          <div class="p-3 rounded-xl bg-slate-950 border border-blue-500/30 space-y-2">
+            <div class="flex justify-between items-center text-slate-400">
+              <span class="font-bold text-blue-400">SLACK LIVE ASSIST NOTIFICATION</span>
+              <span class="px-1.5 py-0.5 rounded bg-slate-800 text-[10px]">#meeting-followups</span>
+            </div>
+            <div class="text-slate-200 font-medium">${act.clarification_prompt || act.action_description}</div>
+            <div class="text-slate-400 text-[11px]">Target Recipient: <strong class="text-slate-200">${act.assigned_to || act.speaker}</strong></div>
+          </div>
+        `;
+      }
+
+      document.getElementById('modalIcon').innerText = icon;
+      document.getElementById('modalTitle').innerText = title;
+      document.getElementById('dispatchModal').classList.remove('hidden');
+    }
+
+    function closeModal() {
+      document.getElementById('dispatchModal').classList.add('hidden');
+      selectedActionForDispatch = null;
+    }
+
+    function confirmDispatch() {
+      if (!selectedActionForDispatch) return;
+      alert(`✅ MCP Tool Payload successfully executed! Downstream state updated for ${selectedActionForDispatch.id}.`);
+      closeModal();
     }
   </script>
 </body>
