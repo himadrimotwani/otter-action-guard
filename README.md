@@ -1,5 +1,8 @@
 # 🦦 OtterActionGuard
 
+[![M8ven Score](https://m8ven.ai/badge/mcp/himadrimotwani/otter-action-guard)](https://m8ven.ai/mcp/himadrimotwani/otter-action-guard?s=readme)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 > **Enterprise AI Meeting Agent for Action Disambiguation, Speech ASR Correction, Speaker Analytics & Gated MCP Tool Execution**  
 > Resolving conditional commitments, acoustic transcription errors, and coreference ambiguities from conversational transcripts before dispatching to Jira, Slack, and ERP.
 
