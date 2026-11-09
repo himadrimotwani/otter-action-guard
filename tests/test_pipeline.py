@@ -88,6 +88,20 @@ class TestOtterActionGuard(unittest.TestCase):
         self.assertGreaterEqual(result.coach_summary.interaction_balance_score, 0.5)
         self.assertGreaterEqual(len(result.coach_summary.coaching_tips), 1)
 
+    def test_cross_meeting_temporal_resolution(self):
+        guard = OtterActionGuard()
+        # Session 1: Commitment gated on customs
+        m1 = "[00:01] David: We can commit to delivery by Friday if the customs clearance clears by Tuesday."
+        res1 = guard.process_transcript(m1, meeting_id="MEET-NOV-02", title="Session 1")
+        self.assertEqual(res1.blocked_count, 1)
+
+        # Session 2: Customs cleared confirmation
+        m2 = "[00:05] David: Customs cleared this morning without issues. We are confirmed."
+        res2 = guard.process_transcript(m2, meeting_id="MEET-NOV-05", title="Session 2")
+        self.assertGreaterEqual(len(res2.cross_meeting_events), 1)
+        self.assertEqual(res2.cross_meeting_events[0].event_type, "PREREQUISITE_FULFILLED")
+        self.assertEqual(res2.cross_meeting_events[0].new_status, ActionStatus.READY_FOR_EXECUTION)
+
     def test_end_to_end_extractor(self):
         guard = OtterActionGuard()
         sample = (

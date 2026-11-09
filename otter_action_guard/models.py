@@ -45,6 +45,7 @@ class ActionItem:
     suggested_integration: Optional[str] = None
     thought_trace: Optional[str] = None               # AI Chain-of-Thought reasoning trace
     coreference_resolution: Optional[Dict[str, str]] = None # AI-resolved pronouns / entity antecedents
+    source_meeting_id: Optional[str] = None
 
     def to_dict(self) -> Dict[str, Any]:
         d = asdict(self)
@@ -94,6 +95,26 @@ class MeetingCoachSummary:
 
 
 @dataclass
+class CrossMeetingEvent:
+    """Represents a state change or prerequisite resolution across multiple meetings."""
+    event_id: str
+    event_type: str  # e.g. "PREREQUISITE_FULFILLED", "COMMITMENT_SUPERSEDED"
+    target_action_id: str
+    source_meeting_id: str
+    source_speaker: str
+    evidence_statement: str
+    previous_status: ActionStatus
+    new_status: ActionStatus
+    explanation: str
+
+    def to_dict(self) -> Dict[str, Any]:
+        d = asdict(self)
+        d["previous_status"] = self.previous_status.value
+        d["new_status"] = self.new_status.value
+        return d
+
+
+@dataclass
 class MeetingAnalysisResult:
     meeting_id: str
     title: str
@@ -106,6 +127,7 @@ class MeetingAnalysisResult:
     actions: List[ActionItem] = field(default_factory=list)
     mcp_payloads: List[MCPActionPayload] = field(default_factory=list)
     coach_summary: Optional[MeetingCoachSummary] = None
+    cross_meeting_events: List[CrossMeetingEvent] = field(default_factory=list)
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -119,5 +141,6 @@ class MeetingAnalysisResult:
             "speech_corrections_made": self.speech_corrections_made,
             "actions": [a.to_dict() for a in self.actions],
             "mcp_payloads": [p.to_dict() for p in self.mcp_payloads],
-            "coach_summary": self.coach_summary.to_dict() if self.coach_summary else None
+            "coach_summary": self.coach_summary.to_dict() if self.coach_summary else None,
+            "cross_meeting_events": [e.to_dict() for e in self.cross_meeting_events]
         }

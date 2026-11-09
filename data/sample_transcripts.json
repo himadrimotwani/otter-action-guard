@@ -1,8 +1,13 @@
 [
   {
-    "meeting_id": "OPS-SYNC-2026",
-    "title": "Nike Global Sourcing & Supplier Allocation Sync",
+    "meeting_id": "OPS-SYNC-PART-1",
+    "title": "Nike Global Sourcing Sync (Session 1 - Nov 2)",
     "transcript": "[00:05] Marcus (Sourcing Lead): Welcome everyone. Let's align on the Q2 sneaker assembly volumes for skew 902.\n[00:24] David (Supplier Rep): On the 50,000 unit batch, we can commit to delivery by next Friday if the customs clearance clears by Tuesday.\n[00:52] Sarah (Quality Lead): Hold on, we can only approve that delivery schedule if QA finishes the stress-test audit on batch 4 first.\n[01:15] Marcus (Sourcing Lead): Good catch. Someone should follow up with the lab in Vietnam to get those test logs.\n[01:38] Elena (Procurement): What if we split the shipment into two 25,000 unit air-freight drops instead?\n[02:05] David (Supplier Rep): I will send the revised bomb and price quotation by tomorrow morning.\n[02:30] Marcus (Sourcing Lead): Perfect. Dave, please make sure to log the new pee oh numbers in the ERP system by Thursday.\n[02:55] Sarah (Quality Lead): I will review the lab results as soon as they land in my inbox."
+  },
+  {
+    "meeting_id": "OPS-SYNC-PART-2",
+    "title": "Nike Operations Standup (Session 2 - Nov 5)",
+    "transcript": "[00:05] Marcus (Sourcing Lead): Quick standup team. Any updates on customs clearance for batch 4?\n[00:20] David (Supplier Rep): Good news Marcus, customs cleared this morning without any tariff delays! We are officially confirmed for Friday delivery.\n[00:45] Sarah (Quality Lead): Awesome, QA audit is complete and the stress-test passed with zero defects.\n[01:10] Marcus (Sourcing Lead): Fantastic. I will notify the distribution center in Memphis to prepare docking bay 3."
   },
   {
     "meeting_id": "ENG-AGENT-LAUNCH",

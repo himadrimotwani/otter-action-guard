@@ -6,7 +6,7 @@ Visit: http://localhost:8080 in your browser.
 
 Zero-dependency, standalone local dashboard to interactively test meeting transcripts,
 view AI Agent Chain-of-Thought deliberation, inspect MCP tool payloads,
-analyze speaker dynamics & presentation coaching, and simulate live enterprise dispatch.
+analyze speaker dynamics & presentation coaching, and track cross-meeting state.
 """
 
 import http.server
@@ -45,7 +45,7 @@ INDEX_HTML = """<!DOCTYPE html>
           <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-2">
             OtterActionGuard <span class="text-xs bg-blue-500/20 text-blue-400 font-semibold px-2 py-0.5 rounded-full border border-blue-500/30">Enterprise Agent</span>
           </h1>
-          <p class="text-xs text-slate-400">Meeting-to-Action Disambiguation, Speaker Analytics & Gated MCP Dispatch</p>
+          <p class="text-xs text-slate-400">Meeting Disambiguation, Cross-Meeting State & Gated MCP Dispatch</p>
         </div>
       </div>
       <div class="flex items-center gap-3 text-xs">
@@ -71,14 +71,31 @@ INDEX_HTML = """<!DOCTYPE html>
           <label class="text-sm font-semibold text-slate-200">Select Meeting Scenario</label>
           <span class="text-xs text-slate-400">Presets</span>
         </div>
-        <div class="grid grid-cols-2 gap-2">
-          <button onclick="loadSample(0)" class="text-left p-2.5 rounded-xl bg-slate-800 hover:bg-blue-600/20 hover:border-blue-500/50 border border-slate-700/60 transition text-xs">
-            <div class="font-medium text-slate-200">👟 Nike Sourcing Sync</div>
-            <div class="text-[11px] text-slate-400 truncate">Supply chain & supplier negotiation</div>
+        
+        <!-- 3 Presets -->
+        <div class="grid grid-cols-1 gap-2">
+          <button onclick="loadSample(0)" class="text-left p-2.5 rounded-xl bg-slate-800 hover:bg-blue-600/20 hover:border-blue-500/50 border border-slate-700/60 transition text-xs flex justify-between items-center">
+            <div>
+              <div class="font-medium text-slate-200">👟 [1] Nike Sourcing Sync (Nov 2)</div>
+              <div class="text-[11px] text-slate-400">Creates conditional commitments (gated on customs & QA)</div>
+            </div>
+            <span class="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 text-[10px]">Session 1</span>
           </button>
-          <button onclick="loadSample(1)" class="text-left p-2.5 rounded-xl bg-slate-800 hover:bg-blue-600/20 hover:border-blue-500/50 border border-slate-700/60 transition text-xs">
-            <div class="font-medium text-slate-200">🚀 Tech Arch Review</div>
-            <div class="text-[11px] text-slate-400 truncate">MCP connectors & Redis infra</div>
+          
+          <button onclick="loadSample(1)" class="text-left p-2.5 rounded-xl bg-slate-800 hover:bg-blue-600/20 hover:border-blue-500/50 border border-slate-700/60 transition text-xs flex justify-between items-center">
+            <div>
+              <div class="font-medium text-slate-200">⚡ [2] Nike Standup (Nov 5)</div>
+              <div class="text-[11px] text-slate-400">Resolves Session 1 conditions (Customs & QA passed)</div>
+            </div>
+            <span class="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px]">Session 2</span>
+          </button>
+
+          <button onclick="loadSample(2)" class="text-left p-2.5 rounded-xl bg-slate-800 hover:bg-blue-600/20 hover:border-blue-500/50 border border-slate-700/60 transition text-xs flex justify-between items-center">
+            <div>
+              <div class="font-medium text-slate-200">🚀 [3] Tech Arch Review</div>
+              <div class="text-[11px] text-slate-400">MCP connectors & Redis infra gating</div>
+            </div>
+            <span class="px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300 text-[10px]">Eng Sync</span>
           </button>
         </div>
 
@@ -97,7 +114,7 @@ INDEX_HTML = """<!DOCTYPE html>
             <label class="text-xs font-semibold text-slate-300">Transcript Input (with ASR speech artifacts)</label>
             <span class="text-[11px] text-slate-400" id="turnCountLabel">8 turns</span>
           </div>
-          <textarea id="transcriptInput" rows="8" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-slate-200 font-mono focus:outline-none focus:border-blue-500 leading-relaxed resize-y"></textarea>
+          <textarea id="transcriptInput" rows="7" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-slate-200 font-mono focus:outline-none focus:border-blue-500 leading-relaxed resize-y"></textarea>
         </div>
 
         <button onclick="runAnalysis()" id="analyzeBtn" class="w-full py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm transition shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2">
@@ -168,6 +185,14 @@ INDEX_HTML = """<!DOCTYPE html>
           </div>
         </div>
 
+        <!-- Cross-Meeting Resolution Banner (Injected if conditions resolved) -->
+        <div id="crossMeetingBanner" class="hidden mb-4 p-4 rounded-xl bg-emerald-950/30 border border-emerald-500/40 space-y-2">
+          <div class="flex items-center gap-2 text-emerald-400 font-bold text-xs uppercase tracking-wider">
+            <i class="fa-solid fa-bolt"></i> Otter Work Mode: Cross-Meeting Resolution Triggered
+          </div>
+          <div id="crossMeetingList" class="space-y-1.5 text-xs text-emerald-200"></div>
+        </div>
+
         <div id="actionsContainer" class="space-y-4">
           <div class="text-center py-20 text-slate-500 text-sm">
             <i class="fa-regular fa-comment-dots text-4xl mb-3 block text-slate-600"></i>
@@ -217,7 +242,8 @@ INDEX_HTML = """<!DOCTYPE html>
   <script>
     const SAMPLES = [
       {
-        title: "Nike Global Sourcing Sync",
+        id: "OPS-SYNC-PART-1",
+        title: "Nike Global Sourcing Sync (Session 1 - Nov 2)",
         transcript: `[00:05] Marcus (Sourcing Lead): Welcome everyone. Let's align on the Q2 sneaker assembly volumes for skew 902.
 [00:24] David (Supplier Rep): On the 50,000 unit batch, we can commit to delivery by next Friday if the customs clearance clears by Tuesday.
 [00:52] Sarah (Quality Lead): Hold on, we can only approve that delivery schedule if QA finishes the stress-test audit on batch 4 first.
@@ -228,6 +254,15 @@ INDEX_HTML = """<!DOCTYPE html>
 [02:55] Sarah (Quality Lead): I will review the lab results as soon as they land in my inbox.`
       },
       {
+        id: "OPS-SYNC-PART-2",
+        title: "Nike Operations Standup (Session 2 - Nov 5)",
+        transcript: `[00:05] Marcus (Sourcing Lead): Quick standup team. Any updates on customs clearance for batch 4?
+[00:20] David (Supplier Rep): Good news Marcus, customs cleared this morning without any tariff delays! We are officially confirmed for Friday delivery.
+[00:45] Sarah (Quality Lead): Awesome, QA audit is complete and the stress-test passed with zero defects.
+[01:10] Marcus (Sourcing Lead): Fantastic. I will notify the distribution center in Memphis to prepare docking bay 3.`
+      },
+      {
+        id: "ENG-AGENT-LAUNCH",
         title: "Otter AI Agent Architecture Sync",
         transcript: `[00:10] Alex (Tech Lead): Let's review the em see pee server connector rollouts for Jira and Salesforce.
 [00:30] Priya (Backend SWE): I will deploy the rate-limiter updates to staging by Friday.
@@ -237,10 +272,12 @@ INDEX_HTML = """<!DOCTYPE html>
       }
     ];
 
+    let currentSampleIndex = 0;
     let currentAnalysisData = null;
     let selectedActionForDispatch = null;
 
     function loadSample(idx) {
+      currentSampleIndex = idx;
       document.getElementById('transcriptInput').value = SAMPLES[idx].transcript;
       updateTurnCount();
     }
@@ -278,7 +315,6 @@ INDEX_HTML = """<!DOCTYPE html>
         };
         reader.readAsText(file);
       } else {
-        // Audio file mock simulation
         alert(`🎙️ Decoded audio stream: "${file.name}"\\nWaveform processed through acoustic phoneme aligner and diarized into multi-speaker transcript.`);
         loadSample(0);
       }
@@ -293,11 +329,17 @@ INDEX_HTML = """<!DOCTYPE html>
       btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Reasoning & Disambiguating...';
       btn.disabled = true;
 
+      const sample = SAMPLES[currentSampleIndex];
+
       try {
         const resp = await fetch('/api/analyze', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ transcript: text })
+          body: JSON.stringify({ 
+            transcript: text,
+            meeting_id: sample ? sample.id : "MEET-ADHOC",
+            title: sample ? sample.title : "Custom Meeting Sync"
+          })
         });
         const data = await resp.json();
         currentAnalysisData = data;
@@ -320,6 +362,28 @@ INDEX_HTML = """<!DOCTYPE html>
       document.getElementById('metricClarify').innerText = data.clarification_count;
       document.getElementById('metricSpeech').innerText = data.speech_corrections_made;
       document.getElementById('executionBadge').innerText = `${data.actions.length} Actions Evaluated`;
+
+      // Render Cross-Meeting Resolutions if present
+      const banner = document.getElementById('crossMeetingBanner');
+      const list = document.getElementById('crossMeetingList');
+      if (data.cross_meeting_events && data.cross_meeting_events.length > 0) {
+        banner.classList.remove('hidden');
+        list.innerHTML = '';
+        data.cross_meeting_events.forEach(evt => {
+          const item = document.createElement('div');
+          item.className = 'p-2 rounded bg-emerald-900/40 border border-emerald-500/30';
+          item.innerHTML = `
+            <div class="flex items-center justify-between">
+              <strong>${evt.target_action_id} Unlocked</strong>
+              <span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300">BLOCKED ➔ READY</span>
+            </div>
+            <div class="text-[11px] text-emerald-300 mt-1">"${evt.evidence_statement}" (via ${evt.source_speaker})</div>
+          `;
+          list.appendChild(item);
+        });
+      } else {
+        banner.classList.add('hidden');
+      }
 
       // Render Speaker Analytics
       if (data.coach_summary) {
@@ -526,7 +590,9 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
             try:
                 data = json.loads(body)
                 raw_text = data.get("transcript", "")
-                result = guard.process_transcript(raw_text)
+                m_id = data.get("meeting_id", f"MEET-{len(guard.memory.processed_meetings) + 1:03d}")
+                title = data.get("title", "Enterprise Operations Review")
+                result = guard.process_transcript(raw_text, meeting_id=m_id, title=title)
                 resp_payload = result.to_dict()
 
                 self.send_response(200)

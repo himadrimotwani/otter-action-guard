@@ -7,6 +7,7 @@ from .mcp_bridge import MCPActionBridge
 from .speech_corrector import ContextualSpeechCorrector
 from .ai_agent import AIAgentEngine
 from .meeting_coach import MeetingCoach
+from .temporal_memory import TemporalMemoryEngine
 
 
 class OtterActionGuard:
@@ -30,6 +31,7 @@ class OtterActionGuard:
         self.ai_agent = AIAgentEngine(provider=ai_provider)
         self.bridge = MCPActionBridge()
         self.coach = MeetingCoach()
+        self.memory = TemporalMemoryEngine()
 
     def process_transcript(
         self,
@@ -126,14 +128,21 @@ class OtterActionGuard:
             actions.append(action)
             action_counter += 1
 
-        # Step 4: Generate Model Context Protocol (MCP) tool payloads
+        # Step 4: Scan for cross-meeting resolutions of prior blocked prerequisites
+        resolved_events, unlocked_payloads = self.memory.scan_for_cross_meeting_resolutions(meeting_id, turns)
+
+        # Step 5: Generate Model Context Protocol (MCP) tool payloads
         mcp_payloads = self.bridge.generate_all(actions)
+        mcp_payloads.extend(unlocked_payloads)
+
+        # Register current meeting actions into global cross-meeting memory
+        self.memory.register_meeting_actions(meeting_id, actions)
 
         ready_count = sum(1 for a in actions if a.status == ActionStatus.READY_FOR_EXECUTION)
         blocked_count = sum(1 for a in actions if a.status == ActionStatus.BLOCKED_ON_CONDITION)
         clarification_count = sum(1 for a in actions if a.status == ActionStatus.NEEDS_HUMAN_CLARIFICATION)
 
-        # Step 5: Speaking Dynamics & Presentation Coaching Analysis
+        # Step 6: Speaking Dynamics & Presentation Coaching Analysis
         coach_summary = self.coach.analyze(turns)
 
         return MeetingAnalysisResult(
@@ -147,5 +156,6 @@ class OtterActionGuard:
             speech_corrections_made=total_corrections,
             actions=actions,
             mcp_payloads=mcp_payloads,
-            coach_summary=coach_summary
+            coach_summary=coach_summary,
+            cross_meeting_events=resolved_events
         )

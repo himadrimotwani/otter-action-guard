@@ -95,6 +95,14 @@ def run_demo():
             for tip in result.coach_summary.coaching_tips:
                 print(f"    💡 {tip}")
 
+        if result.cross_meeting_events:
+            print(f"\n⚡ 6. CROSS-MEETING TEMPORAL RESOLUTION (OTTER WORK MODE INTELLIGENCE):")
+            for evt in result.cross_meeting_events:
+                print(f"  🔗 [Auto-Resolved Action]: {evt.target_action_id}")
+                print(f"     Evidence in this meeting ({evt.source_meeting_id}): \"{evt.evidence_statement}\" (via {evt.source_speaker})")
+                print(f"     State Transition: {evt.previous_status.value} ➔ {evt.new_status.value}")
+                print(f"     Impact: Gated prerequisite unlocked! Automated MCP tool execution dispatched.")
+
         print("=" * 85)
 
     print("\n✅ Demo completed successfully.")
