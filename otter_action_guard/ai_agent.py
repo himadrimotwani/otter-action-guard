@@ -137,8 +137,8 @@ class AIAgentEngine:
             if resolved_entity != "unspecified task":
                 break
 
-        # Informational / agenda setting cues (when not accompanied by a personal commitment)
-        is_direct_commitment = any(w in text for w in ["i will", "i'll", "we will", "we'll", "i am going to"])
+        # Informational / agenda setting cues (only when no action/passive/conditional cue is present)
+        is_direct_commitment = any(w in text for w in ["i will", "i'll", "we will", "we'll", "i am going to", "someone", "somebody", "if ", "only if"])
         if not is_direct_commitment and any(w in text for w in ["welcome", "let's align", "good catch", "let's review", "align on", "sync on"]):
             return {
                 "thought_trace": f"Speaker {speaker} stated an agenda item or conversational acknowledgement ('{target.text}'). No specific task commitment or deliverable is created. Categorized as informational.",

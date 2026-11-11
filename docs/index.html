@@ -1,0 +1,1056 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OtterActionGuard | Live Interactive AI Meeting Agent</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+    body { font-family: 'Inter', sans-serif; }
+    code, pre { font-family: 'JetBrains Mono', monospace; }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen">
+
+  <!-- Header -->
+  <header class="border-b border-slate-800 bg-slate-900/90 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white text-xl shadow-lg shadow-blue-500/20">
+          🦦
+        </div>
+        <div>
+          <h1 class="text-base sm:text-lg font-bold tracking-tight text-white flex items-center gap-2">
+            OtterActionGuard
+            <span class="text-[11px] bg-blue-500/20 text-blue-400 font-semibold px-2 py-0.5 rounded-full border border-blue-500/30">Live Browser Demo</span>
+          </h1>
+          <p class="text-[11px] sm:text-xs text-slate-400">Conditional Commitment Guardrails, ASR Repair, Speaker Coach & Cross-Meeting Memory</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2.5 text-xs">
+        <span id="memoryStatusBadge" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-800 text-slate-300 border border-slate-700">
+          <i class="fa-solid fa-database text-blue-400"></i>
+          <span>Work Mode Memory: 0 sessions</span>
+        </span>
+        <button onclick="resetMemory()" title="Reset Cross-Meeting State" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">
+          <i class="fa-solid fa-rotate-left"></i> Reset
+        </button>
+        <a href="https://github.com/himadrimotwani/otter-action-guard" target="_blank" class="px-3 py-1 rounded-lg bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 border border-blue-500/30 transition font-medium">
+          <i class="fa-brands fa-github mr-1"></i> Repo
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Guided Demo Banner -->
+  <div class="bg-gradient-to-r from-blue-950/60 via-slate-900 to-emerald-950/40 border-b border-slate-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-2.5 flex flex-wrap items-center justify-between gap-2 text-xs">
+      <div class="flex items-center gap-2 text-slate-200">
+        <span class="px-2 py-0.5 rounded bg-blue-600 text-white font-bold text-[10px] uppercase">Try Cross-Meeting Flow</span>
+        <span>
+          <strong>Step 1:</strong> Run <span class="text-amber-300 font-medium">Session 1 (Nov 2)</span> to see gated blockers
+          <i class="fa-solid fa-arrow-right mx-1.5 text-slate-500"></i>
+          <strong>Step 2:</strong> Run <span class="text-emerald-300 font-medium">Session 2 (Nov 5)</span> to watch Otter Work Mode auto-unlock them!
+        </span>
+      </div>
+      <div class="text-[11px] text-slate-400">
+        Built by <a href="https://github.com/himadrimotwani" target="_blank" class="text-blue-400 hover:underline font-medium">Himadri Motwani</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Grid -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+    <!-- Left Column: Input, Presets & Analytics (5 cols) -->
+    <div class="lg:col-span-5 space-y-5">
+
+      <!-- Input Card -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
+        <div class="flex items-center justify-between">
+          <label class="text-sm font-semibold text-slate-200">1. Select Meeting Scenario</label>
+          <span class="text-[11px] text-slate-400">Interactive Presets</span>
+        </div>
+
+        <div class="grid grid-cols-1 gap-2">
+          <button onclick="loadSample(0)" id="presetBtn0" class="preset-btn text-left p-2.5 rounded-xl bg-blue-600/15 border border-blue-500/50 transition text-xs flex justify-between items-center">
+            <div>
+              <div class="font-medium text-slate-100">👟 [1] Nike Sourcing Sync (Nov 2)</div>
+              <div class="text-[11px] text-slate-400">Conditional shipment & QA gates + ASR jargon errors</div>
+            </div>
+            <span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 text-[10px] font-semibold shrink-0 ml-2">Session 1</span>
+          </button>
+
+          <button onclick="loadSample(1)" id="presetBtn1" class="preset-btn text-left p-2.5 rounded-xl bg-slate-800/80 hover:bg-blue-600/15 border border-slate-700/60 transition text-xs flex justify-between items-center">
+            <div>
+              <div class="font-medium text-slate-100">⚡ [2] Nike Standup Follow-Up (Nov 5)</div>
+              <div class="text-[11px] text-slate-400">Clears customs & QA gates from Session 1 automatically</div>
+            </div>
+            <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-semibold shrink-0 ml-2">Session 2</span>
+          </button>
+
+          <button onclick="loadSample(2)" id="presetBtn2" class="preset-btn text-left p-2.5 rounded-xl bg-slate-800/80 hover:bg-blue-600/15 border border-slate-700/60 transition text-xs flex justify-between items-center">
+            <div>
+              <div class="font-medium text-slate-100">🚀 [3] Engineering MCP Connector Sync</div>
+              <div class="text-[11px] text-slate-400">Infra threshold gating & unowned task detection</div>
+            </div>
+            <span class="px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 text-[10px] font-semibold shrink-0 ml-2">Eng Sync</span>
+          </button>
+        </div>
+
+        <!-- File / Audio Drop Zone -->
+        <div id="dropZone" class="border-2 border-dashed border-slate-800 hover:border-blue-500/50 rounded-xl p-3 text-center transition cursor-pointer bg-slate-950/60"
+             onclick="document.getElementById('fileInput').click()">
+          <input type="file" id="fileInput" accept=".wav,.mp3,.json,.txt" class="hidden" onchange="handleFileSelect(event)">
+          <div class="space-y-1">
+            <i class="fa-solid fa-file-audio text-blue-400 text-base"></i>
+            <div class="text-xs text-slate-300 font-medium">Drop .wav, .mp3, .json, or .txt transcript</div>
+            <div class="text-[10px] text-slate-500">Client-side ASR acoustic simulator & transcript parser</div>
+          </div>
+        </div>
+
+        <div>
+          <div class="flex justify-between items-center mb-1.5">
+            <label class="text-xs font-semibold text-slate-300">2. Raw Transcript (Edit or Test Live)</label>
+            <span class="text-[11px] text-slate-400 font-mono" id="turnCountLabel">8 turns</span>
+          </div>
+          <textarea id="transcriptInput" rows="7" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-slate-200 font-mono focus:outline-none focus:border-blue-500 leading-relaxed resize-y"></textarea>
+        </div>
+
+        <button onclick="runAnalysis()" id="analyzeBtn" class="w-full py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm transition shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2">
+          <i class="fa-solid fa-wand-magic-sparkles"></i> Run AI Agent Disambiguation
+        </button>
+      </div>
+
+      <!-- Pipeline Safety Metrics -->
+      <div id="metricsCard" class="hidden bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
+        <div class="flex items-center justify-between">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Pipeline Safety Metrics</h3>
+          <span id="preventedBadge" class="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+            🛡️ 0 Premature Actions Blocked
+          </span>
+        </div>
+        <div class="grid grid-cols-3 gap-2.5 text-center">
+          <div class="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+            <div id="metricReady" class="text-xl font-bold text-emerald-400">0</div>
+            <div class="text-[11px] text-slate-400">Ready Dispatch</div>
+          </div>
+          <div class="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20">
+            <div id="metricBlocked" class="text-xl font-bold text-amber-400">0</div>
+            <div class="text-[11px] text-slate-400">Gated (Blocked)</div>
+          </div>
+          <div class="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20">
+            <div id="metricClarify" class="text-xl font-bold text-blue-400">0</div>
+            <div class="text-[11px] text-slate-400">Live Assist Ping</div>
+          </div>
+        </div>
+        <div class="p-3 rounded-xl bg-slate-800/60 border border-slate-700/60 space-y-2 text-xs">
+          <div class="flex items-center justify-between">
+            <span class="text-slate-300">🎙️ ASR Phonetic Errors Repaired:</span>
+            <span id="metricSpeech" class="font-bold text-blue-400">0</span>
+          </div>
+          <div id="asrDiffBadges" class="flex flex-wrap gap-1.5"></div>
+        </div>
+      </div>
+
+      <!-- Meeting Coach & Speaker Analytics Card -->
+      <div id="coachCard" class="hidden bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
+        <div class="flex items-center justify-between">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
+            <i class="fa-solid fa-chart-pie text-blue-400"></i> Meeting Coach & Dynamics
+          </h3>
+          <span id="balanceScoreBadge" class="text-[11px] font-bold px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30">
+            Balance: 0%
+          </span>
+        </div>
+
+        <div id="speakerBars" class="space-y-2.5"></div>
+
+        <div class="border-t border-slate-800 pt-3">
+          <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">AI Presentation & Negotiation Feedback:</div>
+          <div id="coachingTips" class="space-y-1.5 text-xs text-slate-300"></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Right Column: Results & MCP Payloads (7 cols) -->
+    <div class="lg:col-span-7 space-y-5">
+
+      <!-- Actions Stream -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xl min-h-[480px]">
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-4 mb-4">
+          <div>
+            <h2 class="text-sm font-bold text-slate-100 flex items-center gap-2">
+              <i class="fa-solid fa-layer-group text-blue-400"></i> AI Agent Disambiguation Stream
+            </h2>
+            <p class="text-xs text-slate-400 mt-0.5">5-tier commitment taxonomy, coreference resolution & Chain-of-Thought trace</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="copyMarkdownReport()" id="exportBtn" class="hidden px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs transition">
+              <i class="fa-regular fa-clipboard mr-1"></i> Copy Brief
+            </button>
+            <div id="executionBadge" class="text-xs font-mono px-2.5 py-1 rounded bg-slate-800 text-slate-300 border border-slate-700">
+              Standby
+            </div>
+          </div>
+        </div>
+
+        <!-- Cross-Meeting Resolution Banner -->
+        <div id="crossMeetingBanner" class="hidden mb-4 p-4 rounded-xl bg-emerald-950/40 border border-emerald-500/50 space-y-2.5 shadow-lg shadow-emerald-500/5">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2 text-emerald-400 font-bold text-xs uppercase tracking-wider">
+              <i class="fa-solid fa-bolt animate-pulse"></i> Otter Work Mode: Cross-Meeting Resolution Triggered
+            </div>
+            <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-semibold">Auto-Unlocked</span>
+          </div>
+          <div id="crossMeetingList" class="space-y-2 text-xs text-emerald-200"></div>
+        </div>
+
+        <div id="actionsContainer" class="space-y-3.5">
+          <div class="text-center py-16 text-slate-500 text-sm space-y-3">
+            <i class="fa-regular fa-comment-dots text-4xl block text-slate-600"></i>
+            <div>Click <strong class="text-slate-300">"Run AI Agent Disambiguation"</strong> to run Session 1 live in your browser.</div>
+            <div class="text-xs text-slate-500">Runs 100% client-side with zero backend latency.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MCP Tool Payload Inspector -->
+      <div id="mcpContainer" class="hidden bg-slate-900 border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xl">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
+            <i class="fa-solid fa-code text-blue-400"></i> Generated Model Context Protocol (MCP) Tool Calls
+          </h3>
+          <span class="text-xs text-slate-400">Enterprise Dispatch Schemas</span>
+        </div>
+        <pre id="mcpCode" class="bg-slate-950 p-4 rounded-xl text-xs text-emerald-400 font-mono overflow-x-auto border border-slate-800/80 leading-relaxed max-h-72"></pre>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Interactive Dispatch Sandbox Modal -->
+  <div id="dispatchModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center gap-2">
+          <span id="modalIcon" class="text-xl">🚀</span>
+          <h3 id="modalTitle" class="text-sm font-bold text-white">Simulate Enterprise Tool Dispatch</h3>
+        </div>
+        <button onclick="closeModal()" class="text-slate-400 hover:text-white text-sm"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div id="modalBody" class="space-y-3 text-xs"></div>
+
+      <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-800">
+        <button onclick="closeModal()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs">Cancel</button>
+        <button onclick="confirmDispatch()" id="modalConfirmBtn" class="px-4 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs shadow-lg shadow-blue-500/20">
+          Confirm Execution
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="hidden fixed bottom-5 right-5 bg-emerald-600 text-white px-4 py-2.5 rounded-xl shadow-2xl text-xs font-semibold flex items-center gap-2 z-50">
+    <i class="fa-solid fa-circle-check"></i>
+    <span id="toastMsg">Done!</span>
+  </div>
+
+  <script>
+    // =========================================================================
+    // 1. SAMPLE DATASETS (Mirrors data/sample_transcripts.json)
+    // =========================================================================
+    const SAMPLES = [
+      {
+        id: "OPS-SYNC-PART-1",
+        title: "Nike Global Sourcing Sync (Session 1 - Nov 2)",
+        transcript: `[00:05] Marcus (Sourcing Lead): Welcome everyone. Let's align on the Q2 sneaker assembly volumes for skew 902.
+[00:24] David (Supplier Rep): On the 50,000 unit batch, we can commit to delivery by next Friday if the customs clearance clears by Tuesday.
+[00:52] Sarah (Quality Lead): Hold on, we can only approve that delivery schedule if QA finishes the stress-test audit on batch 4 first.
+[01:15] Marcus (Sourcing Lead): Good catch. Someone should follow up with the lab in Vietnam to get those test logs.
+[01:38] Elena (Procurement): What if we split the shipment into two 25,000 unit air-freight drops instead?
+[02:05] David (Supplier Rep): I will send the revised bomb and price quotation by tomorrow morning.
+[02:30] Marcus (Sourcing Lead): Perfect. Dave, please make sure to log the new pee oh numbers in the ERP system by Thursday.
+[02:55] Sarah (Quality Lead): I will review the lab results as soon as they land in my inbox.`
+      },
+      {
+        id: "OPS-SYNC-PART-2",
+        title: "Nike Operations Standup (Session 2 - Nov 5)",
+        transcript: `[00:05] Marcus (Sourcing Lead): Quick standup team. Any updates on customs clearance for batch 4?
+[00:20] David (Supplier Rep): Good news Marcus, customs cleared this morning without any tariff delays! We are officially confirmed for Friday delivery.
+[00:45] Sarah (Quality Lead): Awesome, QA audit is complete and the stress-test passed with zero defects.
+[01:10] Marcus (Sourcing Lead): Fantastic. I will notify the distribution center in Memphis to prepare docking bay 3.`
+      },
+      {
+        id: "ENG-AGENT-LAUNCH",
+        title: "Otter AI Agent Architecture Review",
+        transcript: `[00:10] Alex (Tech Lead): Let's review the em see pee server connector rollouts for Jira and Salesforce.
+[00:30] Priya (Backend SWE): I will deploy the rate-limiter updates to staging by Friday.
+[00:55] Alex (Tech Lead): Could we potentially bypass the cache on retry requests?
+[01:20] Jordan (Infra): Only if Redis memory utilization stays below 75% under benchmark load.
+[01:45] Priya (Backend SWE): Somebody needs to update the staging environment secrets before we run the load test.`
+      }
+    ];
+
+    // =========================================================================
+    // 2. CONTEXTUAL SPEECH ASR CORRECTOR (Mirrors speech_corrector.py)
+    // =========================================================================
+    const ASR_GLOSSARY = [
+      { term: "SKU", regex: /\bskew\s+(\d+)\b/gi, replace: (m, d) => `SKU ${d}` },
+      { term: "SKU", regex: /\bskews?\b/gi, replace: () => "SKU" },
+      { term: "BOM", regex: /\bbomb\b/gi, replace: () => "BOM" },
+      { term: "BOM", regex: /\bbee oh em\b/gi, replace: () => "BOM" },
+      { term: "WMS", regex: /\bwomen's(?=\s+(?:inventory|warehouse|system|order))/gi, replace: () => "WMS" },
+      { term: "PO",  regex: /\bpee oh\b/gi, replace: () => "PO" },
+      { term: "PO",  regex: /\bp\.o\.\b/gi, replace: () => "PO" },
+      { term: "Foxconn", regex: /\bfox\s+co[nm]\b/gi, replace: () => "Foxconn" },
+      { term: "ERP", regex: /\bee are pee\b/gi, replace: () => "ERP" },
+      { term: "MCP", regex: /\bem see pee\b/gi, replace: () => "MCP" }
+    ];
+
+    function correctSpeechText(text) {
+      let corrected = text;
+      const fixes = [];
+      for (const rule of ASR_GLOSSARY) {
+        corrected = corrected.replace(rule.regex, (...args) => {
+          const original = args[0];
+          const replacement = rule.replace(...args);
+          fixes.push({ original, corrected: replacement, term: rule.term });
+          return replacement;
+        });
+      }
+      return { corrected, fixes };
+    }
+
+    // =========================================================================
+    // 3. TRANSCRIPT PARSER (Mirrors parser.py)
+    // =========================================================================
+    function parseTranscript(rawText) {
+      const lines = rawText.trim().split("\n").map(l => l.trim()).filter(Boolean);
+      const turns = [];
+      const bracketRe = /^\[(\d{1,2}:\d{2}(?::\d{2})?)\]\s*([^:]+):\s*(.*)$/;
+      const parenRe   = /^([^\(\[]+)\s*[\(\[](\d{1,2}:\d{2}(?::\d{2})?)[\)\]]:\s*(.*)$/;
+      const simpleRe  = /^([A-Za-z\s\(\)]+):\s*(.*)$/;
+
+      for (const line of lines) {
+        let m = line.match(bracketRe);
+        if (m) {
+          turns.push({ timestamp: m[1], speaker: m[2].trim(), text: m[3].trim() });
+          continue;
+        }
+        m = line.match(parenRe);
+        if (m) {
+          turns.push({ speaker: m[1].trim(), timestamp: m[2], text: m[3].trim() });
+          continue;
+        }
+        m = line.match(simpleRe);
+        if (m) {
+          turns.push({ speaker: m[1].trim(), timestamp: "00:00", text: m[2].trim() });
+          continue;
+        }
+        if (turns.length > 0) {
+          turns[turns.length - 1].text += " " + line;
+        } else {
+          turns.push({ speaker: "Unknown", timestamp: "00:00", text: line });
+        }
+      }
+      return turns;
+    }
+
+    // =========================================================================
+    // 4. DISAMBIGUATOR & AI AGENT REASONER (Mirrors disambiguator.py & ai_agent.py)
+    // =========================================================================
+    const ACTION_TRIGGER_RE = /\b(will|going to|let's|can you|could you|please|if|should|need to|ought to|what if|commit|send|prepare|update|follow up|schedule|review|approve|notify)\b/i;
+    const CONDITIONAL_RE = /\b(if|only if|provided that|as long as|subject to|assuming|in case|unless|pending)\b\s+([^,.;]+)/i;
+    const EXPLORATORY_RE = /\b(what if|maybe we could|could we potentially|would it make sense|we might consider|how about if)\b/i;
+    const PASSIVE_RE     = /\b(someone needs to|somebody should|somebody needs to|someone should|needs to get done|it would be good to|we ought to)\b/i;
+    const DELEGATION_RE  = /(?:([A-Z][a-z]+),\s+)?\b(can you|could you please|please make sure to|let's have\s+([A-Z][a-z]+)\s+take care of|assign\s+(?:this\s+)?to\s+([A-Z][a-z]+))\b/i;
+    const DATE_RE        = /\b(by\s+(?:next\s+)?(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|EOD|end of week|tomorrow(?:\s+morning)?|\d{1,2}(?:st|nd|rd|th)?\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*))\b/i;
+
+    function resolveCoreferenceEntity(turns, idx) {
+      const kws = ["batch", "po", "pricing", "quotation", "lab", "rate-limiter", "secrets", "staging", "sku", "bom"];
+      for (let i = idx - 1; i >= Math.max(0, idx - 3); i--) {
+        const lower = turns[i].text.toLowerCase();
+        for (const kw of kws) {
+          if (lower.includes(kw)) return `the ${kw.toUpperCase()} item raised by ${turns[i].speaker}`;
+        }
+      }
+      return "current meeting deliverable";
+    }
+
+    function analyzeTurn(turns, idx) {
+      const turn = turns[idx];
+      const text = turn.text.trim();
+      const lower = text.toLowerCase();
+      const speaker = turn.speaker;
+      const dateMatch = text.match(DATE_RE);
+      const targetDate = dateMatch ? dateMatch[1] : null;
+      const resolvedEntity = resolveCoreferenceEntity(turns, idx);
+
+      const isDirectCommitment = /\b(i will|i'll|we will|we'll|i am going to|someone|somebody|if|only if)\b/i.test(text);
+      const isAgendaCue = !isDirectCommitment && /\b(welcome|let's align|good catch|let's review|align on|sync on)\b/i.test(text);
+
+      // 1. Agenda / Informational
+      if (isAgendaCue) {
+        return {
+          commitment_type: "EXPLORATORY_PROPOSAL",
+          status: "INFORMATIONAL_ONLY",
+          assigned_to: null,
+          prerequisite_condition: null,
+          target_date_raw: targetDate,
+          confidence_score: 0.94,
+          clarification_prompt: null,
+          thought_trace: `Speaker ${speaker} stated an agenda item or acknowledgement. No deliverable or binding commitment found.`
+        };
+      }
+
+      // 2. Exploratory / Hypothetical
+      if (EXPLORATORY_RE.test(text)) {
+        return {
+          commitment_type: "EXPLORATORY_PROPOSAL",
+          status: "INFORMATIONAL_ONLY",
+          assigned_to: null,
+          prerequisite_condition: null,
+          target_date_raw: targetDate,
+          confidence_score: 0.91,
+          clarification_prompt: "Otter Live Assist: This sounds like an exploratory idea rather than a committed action. Save as brainstorming note?",
+          thought_trace: `Speaker ${speaker} posed a hypothetical scenario ('${text}'). Filtered out to prevent phantom Jira/ERP tasks.`
+        };
+      }
+
+      // 3. Passive / Unowned (Check before conditional so 'Someone should...' isn't missed)
+      if (PASSIVE_RE.test(text)) {
+        return {
+          commitment_type: "AMBIGUOUS_PASSIVE",
+          status: "NEEDS_CLARIFICATION",
+          assigned_to: null,
+          prerequisite_condition: null,
+          target_date_raw: targetDate,
+          confidence_score: 0.65,
+          clarification_prompt: `Otter Live Assist: '${text}' was raised without an owner. Who should own this?`,
+          thought_trace: `A required operational task was voiced using passive phrasing without assigning a specific owner. High risk of task abandonment.`
+        };
+      }
+
+      // 4. Conditional Commitment
+      const condMatch = text.match(CONDITIONAL_RE);
+      if (condMatch) {
+        const condition = condMatch[0].trim();
+        return {
+          commitment_type: "CONDITIONAL_COMMITMENT",
+          status: "BLOCKED_ON_CONDITION",
+          assigned_to: speaker,
+          prerequisite_condition: condition,
+          target_date_raw: targetDate,
+          confidence_score: 0.88,
+          clarification_prompt: `Otter Live Assist: ${speaker}'s commitment is gated on '${condition}'. Hold downstream dispatch until verified?`,
+          thought_trace: `Speaker ${speaker} pledged an action but appended an explicit conditional dependency ('${condition}'). Dispatching prematurely would cause operational faults.`
+        };
+      }
+
+      // 5. Delegated Request
+      const delegMatch = text.match(DELEGATION_RE);
+      if (delegMatch) {
+        const delegate = delegMatch[1] || delegMatch[3] || delegMatch[4] || null;
+        return {
+          commitment_type: "DELEGATED_REQUEST",
+          status: delegate ? "READY_FOR_EXECUTION" : "NEEDS_CLARIFICATION",
+          assigned_to: delegate || "Unassigned Delegate",
+          prerequisite_condition: null,
+          target_date_raw: targetDate,
+          confidence_score: 0.84,
+          clarification_prompt: delegate ? `${speaker} delegated this to ${delegate}. Confirmation ping prepared.` : `${speaker} delegated without a clear owner.`,
+          thought_trace: `Direct cross-participant delegation detected from ${speaker} to ${delegate || 'unnamed party'} referencing ${resolvedEntity}.`
+        };
+      }
+
+      // 6. Firm Direct Commitment
+      return {
+        commitment_type: "FIRM_COMMITMENT",
+        status: "READY_FOR_EXECUTION",
+        assigned_to: speaker,
+        prerequisite_condition: null,
+        target_date_raw: targetDate,
+        confidence_score: 0.96,
+        clarification_prompt: null,
+        thought_trace: `Speaker ${speaker} used definitive first-person commitment syntax. Unconditional intent confirmed referencing ${resolvedEntity}.`
+      };
+    }
+
+    // =========================================================================
+    // 5. MEETING COACH & SPEAKER DYNAMICS (Mirrors meeting_coach.py)
+    // =========================================================================
+    function analyzeMeetingCoach(turns) {
+      if (turns.length === 0) return null;
+      const wordMap = {};
+      const monoMap = {};
+      let totalWords = 0;
+
+      for (const t of turns) {
+        const words = t.text.trim().split(/\s+/).filter(Boolean);
+        const count = words.length;
+        wordMap[t.speaker] = (wordMap[t.speaker] || 0) + count;
+        totalWords += count;
+        if (count >= 35) monoMap[t.speaker] = (monoMap[t.speaker] || 0) + 1;
+      }
+
+      const metrics = Object.keys(wordMap).map(speaker => ({
+        speaker,
+        word_count: wordMap[speaker],
+        talk_time_pct: totalWords > 0 ? Math.round((wordMap[speaker] / totalWords) * 1000) / 10 : 0,
+        monologue_count: monoMap[speaker] || 0
+      })).sort((a, b) => b.talk_time_pct - a.talk_time_pct);
+
+      const n = metrics.length;
+      let balance = 0.5;
+      if (n > 1) {
+        const ideal = 100 / n;
+        const variance = metrics.reduce((acc, m) => acc + Math.abs(m.talk_time_pct - ideal), 0) / 200;
+        balance = Math.max(0.1, Math.round((1 - variance) * 100) / 100);
+      }
+
+      const tips = [];
+      const top = metrics[0];
+      if (top.talk_time_pct > 60) {
+        tips.push(`High talk-time concentration: ${top.speaker} held ${top.talk_time_pct}% of the dialogue. Encourage balanced participation.`);
+      } else if (top.talk_time_pct >= 25 && top.talk_time_pct <= 55) {
+        tips.push(`Healthy negotiation balance: Leading participant (${top.speaker}) spoke ${top.talk_time_pct}% of the time, allowing active two-way dialogue.`);
+      }
+      const monos = metrics.filter(m => m.monologue_count > 0);
+      if (monos.length > 0) {
+        tips.push(`Pacing check: Extended monologues detected from ${monos.map(m => m.speaker).join(", ")}.`);
+      } else {
+        tips.push("Crisp turn-taking: Stakeholders communicated in concise, actionable turns without dominant monologues.");
+      }
+      if (n >= 3) {
+        tips.push(`Multi-party alignment: All ${n} stakeholders contributed actively to operational decisions.`);
+      }
+
+      return { speaker_metrics: metrics, interaction_balance_score: balance, coaching_tips: tips };
+    }
+
+    // =========================================================================
+    // 6. CROSS-MEETING TEMPORAL MEMORY (Mirrors temporal_memory.py)
+    // =========================================================================
+    const temporalMemory = {
+      ledger: {},           // actionKey -> ActionItem
+      processedMeetings: [],
+      events: []
+    };
+
+    const RESOLUTION_RES = [
+      /\b(cleared|completed|finished|passed|approved|signed off|resolved|done|locked in|confirmed)\b/i
+    ];
+    const CONDITION_ENTITIES = ["customs", "qa", "stress-test", "audit", "lab", "finance", "redis", "secrets"];
+
+    function scanCrossMeetingResolutions(meetingId, turns) {
+      const resolvedEvents = [];
+      const unlockedPayloads = [];
+
+      const blockedActions = Object.values(temporalMemory.ledger).filter(
+        a => a.status === "BLOCKED_ON_CONDITION" && a.source_meeting_id !== meetingId && a.prerequisite_condition
+      );
+      if (blockedActions.length === 0) return { resolvedEvents, unlockedPayloads };
+
+      for (const turn of turns) {
+        const lower = turn.text.toLowerCase();
+        const hasResolution = RESOLUTION_RES.some(re => re.test(lower));
+        if (!hasResolution) continue;
+
+        for (const act of blockedActions) {
+          if (act.status !== "BLOCKED_ON_CONDITION") continue; // already unlocked in this loop
+          const condLower = act.prerequisite_condition.toLowerCase();
+          const matchedEntities = CONDITION_ENTITIES.filter(k => condLower.includes(k));
+          const entityHit = matchedEntities.some(ent => lower.includes(ent));
+
+          if (entityHit) {
+            const prevStatus = act.status;
+            act.status = "READY_FOR_EXECUTION";
+            const evt = {
+              event_id: `EVT-${String(temporalMemory.events.length + 1).padStart(3, "0")}`,
+              event_type: "PREREQUISITE_FULFILLED",
+              target_action_id: act.id,
+              source_meeting_id: meetingId,
+              source_speaker: turn.speaker,
+              evidence_statement: turn.text,
+              previous_status: prevStatus,
+              new_status: "READY_FOR_EXECUTION"
+            };
+            temporalMemory.events.push(evt);
+            resolvedEvents.push(evt);
+
+            const payload = createMCPPayload(act);
+            payload.requires_approval = false;
+            payload.unlocked_by_meeting = meetingId;
+            unlockedPayloads.push(payload);
+          }
+        }
+      }
+      return { resolvedEvents, unlockedPayloads };
+    }
+
+    function createMCPPayload(act) {
+      const lower = act.action_description.toLowerCase();
+      const isSupplyChain = ["batch", "supplier", "shipment", "po", "pricing", "units", "bom", "sku", "wms"].some(k => lower.includes(k));
+      const requiresApproval = act.status !== "READY_FOR_EXECUTION";
+
+      if (isSupplyChain) {
+        return {
+          tool_name: "erp_procurement_update_commitment",
+          requires_approval: requiresApproval,
+          source_action_id: act.id,
+          parameters: {
+            owner: act.assigned_to || "Unassigned",
+            summary: act.action_description,
+            target_date: act.target_date_raw || "TBD",
+            prerequisite: act.prerequisite_condition,
+            status: requiresApproval ? "PENDING_VERIFICATION" : "COMMITTED",
+            confidence: act.confidence_score
+          }
+        };
+      } else if (act.assigned_to && act.status === "READY_FOR_EXECUTION") {
+        return {
+          tool_name: "jira_create_issue",
+          requires_approval: false,
+          source_action_id: act.id,
+          parameters: {
+            project_key: "PROJ",
+            summary: act.action_description,
+            assignee: act.assigned_to,
+            due_date: act.target_date_raw || "Unspecified",
+            issue_type: "Task"
+          }
+        };
+      } else {
+        return {
+          tool_name: "slack_post_clarification_prompt",
+          requires_approval: requiresApproval,
+          source_action_id: act.id,
+          parameters: {
+            channel: "#meeting-followups",
+            recipient: act.assigned_to || act.speaker,
+            prompt_message: act.clarification_prompt || `Verify task: ${act.action_description}`
+          }
+        };
+      }
+    }
+
+    // =========================================================================
+    // 7. ORCHESTRATOR & UI CONTROLLERS
+    // =========================================================================
+    let currentSampleIndex = 0;
+    let currentAnalysisData = null;
+    let selectedActionForDispatch = null;
+
+    function loadSample(idx) {
+      currentSampleIndex = idx;
+      document.getElementById('transcriptInput').value = SAMPLES[idx].transcript;
+      document.querySelectorAll('.preset-btn').forEach((btn, i) => {
+        if (i === idx) {
+          btn.className = "preset-btn text-left p-2.5 rounded-xl bg-blue-600/15 border border-blue-500/50 transition text-xs flex justify-between items-center";
+        } else {
+          btn.className = "preset-btn text-left p-2.5 rounded-xl bg-slate-800/80 hover:bg-blue-600/15 border border-slate-700/60 transition text-xs flex justify-between items-center";
+        }
+      });
+      updateTurnCount();
+    }
+
+    function updateTurnCount() {
+      const lines = document.getElementById('transcriptInput').value.trim().split('\n').filter(l => l.trim().length > 0);
+      document.getElementById('turnCountLabel').innerText = lines.length + ' turns';
+    }
+
+    function updateMemoryBadge() {
+      const count = temporalMemory.processedMeetings.length;
+      const blocked = Object.values(temporalMemory.ledger).filter(a => a.status === "BLOCKED_ON_CONDITION").length;
+      const unlocked = temporalMemory.events.length;
+      const badge = document.getElementById('memoryStatusBadge');
+      badge.innerHTML = `<i class="fa-solid fa-database text-blue-400"></i> <span>Work Mode: ${count} session${count === 1 ? '' : 's'} (${blocked} gated, ${unlocked} unlocked)</span>`;
+    }
+
+    function resetMemory() {
+      temporalMemory.ledger = {};
+      temporalMemory.processedMeetings = [];
+      temporalMemory.events = [];
+      updateMemoryBadge();
+      document.getElementById('crossMeetingBanner').classList.add('hidden');
+      showToast("Cross-Meeting Memory reset! Ready to replay Session 1 ➔ Session 2.");
+    }
+
+    function handleFileSelect(evt) {
+      const file = evt.target.files[0];
+      if (!file) return;
+      if (file.name.endsWith('.json')) {
+        const reader = new FileReader();
+        reader.onload = e => {
+          try {
+            const parsed = JSON.parse(e.target.result);
+            document.getElementById('transcriptInput').value = Array.isArray(parsed) ? parsed[0].transcript : (parsed.transcript || "");
+            updateTurnCount();
+            showToast(`Loaded JSON transcript from ${file.name}`);
+          } catch { alert("Invalid JSON file"); }
+        };
+        reader.readAsText(file);
+      } else if (file.name.endsWith('.txt')) {
+        const reader = new FileReader();
+        reader.onload = e => {
+          document.getElementById('transcriptInput').value = e.target.result;
+          updateTurnCount();
+          showToast(`Loaded text transcript from ${file.name}`);
+        };
+        reader.readAsText(file);
+      } else {
+        loadSample(0);
+        showToast(`🎙️ Simulated acoustic ASR diarization for ${file.name}`);
+      }
+    }
+
+    function runAnalysis() {
+      const rawText = document.getElementById('transcriptInput').value;
+      const sample = SAMPLES[currentSampleIndex];
+      const meetingId = (sample && rawText.trim() === sample.transcript.trim())
+        ? sample.id
+        : `MEET-CUSTOM-${temporalMemory.processedMeetings.length + 1}`;
+
+      const rawTurns = parseTranscript(rawText);
+      const turns = [];
+      const allFixes = [];
+
+      for (const t of rawTurns) {
+        const { corrected, fixes } = correctSpeechText(t.text);
+        allFixes.push(...fixes);
+        turns.push({ ...t, text: corrected, raw_before_asr: t.text, asr_fixes: fixes });
+      }
+
+      // Scan prior cross-meeting blockers before registering new ones
+      const { resolvedEvents, unlockedPayloads } = scanCrossMeetingResolutions(meetingId, turns);
+
+      const actions = [];
+      let counter = 1;
+      for (let i = 0; i < turns.length; i++) {
+        const t = turns[i];
+        if (!ACTION_TRIGGER_RE.test(t.text)) continue;
+
+        const analysis = analyzeTurn(turns, i);
+        const lower = t.text.toLowerCase();
+        let integration = "slack";
+        if (["po", "batch", "supplier", "shipment", "bom", "wms", "sku", "pricing"].some(k => lower.includes(k))) {
+          integration = "erp";
+        } else if (["jira", "ticket", "rate-limiter", "staging", "secrets"].some(k => lower.includes(k))) {
+          integration = "jira";
+        } else if (lower.includes("calendar") || lower.includes("schedule")) {
+          integration = "calendar";
+        }
+
+        const actId = `${meetingId === 'OPS-SYNC-PART-2' ? 'S2-' : ''}ACT-${String(counter).padStart(3, "0")}`;
+        const item = {
+          id: actId,
+          source_turn_index: i,
+          source_meeting_id: meetingId,
+          raw_statement: t.text,
+          asr_fixes: t.asr_fixes,
+          speaker: t.speaker,
+          action_description: t.text,
+          suggested_integration: integration,
+          ...analysis
+        };
+        actions.push(item);
+        temporalMemory.ledger[`${meetingId}:${actId}`] = item;
+        counter++;
+      }
+
+      if (!temporalMemory.processedMeetings.includes(meetingId)) {
+        temporalMemory.processedMeetings.push(meetingId);
+      }
+
+      const mcpPayloads = actions
+        .filter(a => a.status !== "INFORMATIONAL_ONLY")
+        .map(createMCPPayload)
+        .concat(unlockedPayloads);
+
+      const coachSummary = analyzeMeetingCoach(turns);
+
+      const result = {
+        meeting_id: meetingId,
+        total_turns: turns.length,
+        ready_count: actions.filter(a => a.status === "READY_FOR_EXECUTION").length,
+        blocked_count: actions.filter(a => a.status === "BLOCKED_ON_CONDITION").length,
+        clarification_count: actions.filter(a => a.status === "NEEDS_CLARIFICATION").length,
+        speech_corrections_made: allFixes.length,
+        asr_fixes: allFixes,
+        actions,
+        mcp_payloads: mcpPayloads,
+        coach_summary: coachSummary,
+        cross_meeting_events: resolvedEvents
+      };
+
+      currentAnalysisData = result;
+      updateMemoryBadge();
+      renderResults(result);
+    }
+
+    function renderResults(data) {
+      document.getElementById('metricsCard').classList.remove('hidden');
+      document.getElementById('mcpContainer').classList.remove('hidden');
+      document.getElementById('coachCard').classList.remove('hidden');
+      document.getElementById('exportBtn').classList.remove('hidden');
+
+      document.getElementById('metricReady').innerText = data.ready_count;
+      document.getElementById('metricBlocked').innerText = data.blocked_count;
+      document.getElementById('metricClarify').innerText = data.clarification_count;
+      document.getElementById('metricSpeech').innerText = data.speech_corrections_made;
+      document.getElementById('executionBadge').innerText = `${data.actions.length} Actions Evaluated`;
+
+      const prevented = data.blocked_count + data.clarification_count;
+      document.getElementById('preventedBadge').innerText = `🛡️ ${prevented} Premature Action${prevented === 1 ? '' : 's'} Blocked`;
+
+      const diffBox = document.getElementById('asrDiffBadges');
+      diffBox.innerHTML = '';
+      data.asr_fixes.forEach(f => {
+        const span = document.createElement('span');
+        span.className = 'px-2 py-0.5 rounded bg-blue-500/15 border border-blue-500/30 text-[10px] font-mono text-blue-300';
+        span.innerText = `"${f.original}" ➔ "${f.corrected}"`;
+        diffBox.appendChild(span);
+      });
+
+      // Cross-Meeting Banner
+      const banner = document.getElementById('crossMeetingBanner');
+      const list = document.getElementById('crossMeetingList');
+      if (data.cross_meeting_events && data.cross_meeting_events.length > 0) {
+        banner.classList.remove('hidden');
+        list.innerHTML = '';
+        data.cross_meeting_events.forEach(evt => {
+          const item = document.createElement('div');
+          item.className = 'p-2.5 rounded-lg bg-emerald-900/40 border border-emerald-500/30';
+          item.innerHTML = `
+            <div class="flex items-center justify-between">
+              <strong>🔗 Prior Action ${evt.target_action_id} Unlocked!</strong>
+              <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono">BLOCKED_ON_CONDITION ➔ READY_FOR_EXECUTION</span>
+            </div>
+            <div class="text-[11px] text-emerald-300 mt-1">Evidence (${evt.source_speaker}): "${evt.evidence_statement}"</div>
+          `;
+          list.appendChild(item);
+        });
+      } else {
+        banner.classList.add('hidden');
+      }
+
+      // Speaker Analytics
+      if (data.coach_summary) {
+        const coach = data.coach_summary;
+        document.getElementById('balanceScoreBadge').innerText = `Balance: ${Math.round(coach.interaction_balance_score * 100)}%`;
+
+        const bars = document.getElementById('speakerBars');
+        bars.innerHTML = '';
+        coach.speaker_metrics.forEach(spk => {
+          const div = document.createElement('div');
+          div.className = 'text-xs space-y-1';
+          div.innerHTML = `
+            <div class="flex justify-between text-slate-300">
+              <span class="font-medium">${spk.speaker}</span>
+              <span class="text-slate-400 font-mono">${spk.talk_time_pct}% (${spk.word_count}w)</span>
+            </div>
+            <div class="w-full bg-slate-950 h-2 rounded-full overflow-hidden border border-slate-800">
+              <div class="bg-blue-500 h-full rounded-full transition-all duration-500" style="width: ${spk.talk_time_pct}%"></div>
+            </div>
+          `;
+          bars.appendChild(div);
+        });
+
+        const tipsBox = document.getElementById('coachingTips');
+        tipsBox.innerHTML = '';
+        coach.coaching_tips.forEach(tip => {
+          const p = document.createElement('p');
+          p.className = 'flex items-start gap-1.5';
+          p.innerHTML = `<span class="text-blue-400 font-bold">💡</span> <span>${tip}</span>`;
+          tipsBox.appendChild(p);
+        });
+      }
+
+      // Action Cards
+      const container = document.getElementById('actionsContainer');
+      container.innerHTML = '';
+
+      data.actions.forEach(act => {
+        let badgeColor = 'bg-slate-800 text-slate-300 border-slate-700';
+        let statusIcon = '💡';
+        let borderClass = 'border-slate-800';
+
+        if (act.status === 'READY_FOR_EXECUTION') {
+          badgeColor = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30';
+          statusIcon = '✅';
+          borderClass = 'border-emerald-500/30';
+        } else if (act.status === 'BLOCKED_ON_CONDITION') {
+          badgeColor = 'bg-amber-500/10 text-amber-400 border-amber-500/30';
+          statusIcon = '⏳';
+          borderClass = 'border-amber-500/30';
+        } else if (act.status === 'NEEDS_CLARIFICATION') {
+          badgeColor = 'bg-blue-500/10 text-blue-400 border-blue-500/30';
+          statusIcon = '❓';
+          borderClass = 'border-blue-500/30';
+        }
+
+        const fixBadges = (act.asr_fixes || []).map(f =>
+          `<span class="inline-block px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-300 border border-blue-500/30 text-[10px] font-mono">✨ ASR Fixed: ${f.original} ➔ ${f.corrected}</span>`
+        ).join(' ');
+
+        const card = document.createElement('div');
+        card.className = `p-4 rounded-xl bg-slate-950 border ${borderClass} space-y-2.5 transition hover:border-slate-700`;
+        card.innerHTML = `
+          <div class="flex flex-wrap items-center justify-between gap-2 text-xs">
+            <div class="flex items-center gap-2">
+              <span>${statusIcon}</span>
+              <span class="font-bold text-slate-200">${act.id}</span>
+              <span class="px-2 py-0.5 rounded-full border text-[10px] font-semibold ${badgeColor}">
+                ${act.status}
+              </span>
+            </div>
+            <div class="flex items-center gap-2 text-slate-400 text-[11px]">
+              <span>Owner: <strong class="text-slate-200">${act.assigned_to || 'Unassigned'}</strong></span>
+              <button onclick="openDispatchModal('${act.id}')" class="px-2 py-0.5 rounded bg-blue-600/20 hover:bg-blue-600/40 text-blue-300 border border-blue-500/30 transition text-[10px] font-semibold">
+                <i class="fa-solid fa-play mr-1"></i> Simulate Dispatch
+              </button>
+            </div>
+          </div>
+
+          <div class="text-xs text-slate-200 bg-slate-900/80 p-2.5 rounded-lg border border-slate-800 font-mono">
+            "${act.raw_statement}"
+            ${fixBadges ? `<div class="mt-1.5">${fixBadges}</div>` : ''}
+          </div>
+
+          <div class="text-[11px] text-slate-300 bg-blue-950/20 border border-blue-800/30 p-2.5 rounded-lg">
+            <span class="font-bold text-blue-400"><i class="fa-solid fa-brain mr-1"></i> AI Reasoning:</span>
+            ${act.thought_trace}
+          </div>
+
+          ${act.prerequisite_condition ? `
+            <div class="text-[11px] text-amber-300 bg-amber-950/20 border border-amber-800/30 p-2 rounded-lg flex flex-wrap items-center justify-between gap-2">
+              <div><strong class="text-amber-400">⚠️ Gated On:</strong> ${act.prerequisite_condition}</div>
+              <button onclick="simulateUnlock('${act.id}')" class="px-2 py-0.5 rounded bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-[10px] transition">
+                Unlock Condition
+              </button>
+            </div>
+          ` : ''}
+
+          ${act.clarification_prompt ? `
+            <div class="text-[11px] text-blue-300 bg-blue-900/20 border border-blue-700/30 p-2 rounded-lg">
+              <strong class="text-blue-400">💬 Otter Live Assist:</strong> "${act.clarification_prompt}"
+            </div>
+          ` : ''}
+        `;
+        container.appendChild(card);
+      });
+
+      document.getElementById('mcpCode').innerText = JSON.stringify(data.mcp_payloads, null, 2);
+    }
+
+    function simulateUnlock(actId) {
+      if (!currentAnalysisData) return;
+      const act = currentAnalysisData.actions.find(a => a.id === actId);
+      if (act) {
+        act.status = "READY_FOR_EXECUTION";
+        act.prerequisite_condition = null;
+        act.thought_trace = "Manually verified prerequisite pass. Action unlocked for immediate MCP dispatch.";
+        currentAnalysisData.ready_count = currentAnalysisData.actions.filter(a => a.status === "READY_FOR_EXECUTION").length;
+        currentAnalysisData.blocked_count = currentAnalysisData.actions.filter(a => a.status === "BLOCKED_ON_CONDITION").length;
+        currentAnalysisData.mcp_payloads = currentAnalysisData.actions.filter(a => a.status !== "INFORMATIONAL_ONLY").map(createMCPPayload);
+        updateMemoryBadge();
+        renderResults(currentAnalysisData);
+        showToast(`Prerequisite cleared for ${actId}! Status updated to READY_FOR_EXECUTION.`);
+      }
+    }
+
+    function openDispatchModal(actId) {
+      if (!currentAnalysisData) return;
+      const act = currentAnalysisData.actions.find(a => a.id === actId);
+      if (!act) return;
+      selectedActionForDispatch = act;
+      const body = document.getElementById('modalBody');
+      const toolType = act.suggested_integration || 'jira';
+      let icon = '⚡';
+
+      if (toolType === 'jira') {
+        icon = '🎫';
+        body.innerHTML = `
+          <div class="p-3 rounded-xl bg-slate-950 border border-blue-500/30 space-y-2">
+            <div class="flex justify-between items-center text-slate-400">
+              <span class="font-bold text-blue-400">JIRA TICKET PREVIEW</span>
+              <span class="px-1.5 py-0.5 rounded bg-slate-800 text-[10px]">PROJ-104</span>
+            </div>
+            <div class="text-slate-200 font-semibold">${act.action_description}</div>
+            <div class="text-slate-400 text-[11px]">Assignee: <strong class="text-slate-200">${act.assigned_to || 'Unassigned'}</strong></div>
+            <div class="text-slate-400 text-[11px]">Due Date: <strong class="text-slate-200">${act.target_date_raw || 'Unspecified'}</strong></div>
+          </div>`;
+      } else if (toolType === 'erp') {
+        icon = '📦';
+        body.innerHTML = `
+          <div class="p-3 rounded-xl bg-slate-950 border border-amber-500/30 space-y-2">
+            <div class="flex justify-between items-center text-slate-400">
+              <span class="font-bold text-amber-400">ERP PROCUREMENT ORDER UPDATE</span>
+              <span class="px-1.5 py-0.5 rounded bg-slate-800 text-[10px]">PO-902-BATCH</span>
+            </div>
+            <div class="text-slate-200 font-semibold">${act.action_description}</div>
+            <div class="text-slate-400 text-[11px]">Owner: <strong class="text-slate-200">${act.assigned_to || 'Supplier Rep'}</strong></div>
+            <div class="text-slate-400 text-[11px]">Condition: <span class="text-amber-400">${act.prerequisite_condition || 'None (Cleared)'}</span></div>
+          </div>`;
+      } else {
+        icon = '💬';
+        body.innerHTML = `
+          <div class="p-3 rounded-xl bg-slate-950 border border-blue-500/30 space-y-2">
+            <div class="flex justify-between items-center text-slate-400">
+              <span class="font-bold text-blue-400">SLACK LIVE ASSIST PING</span>
+              <span class="px-1.5 py-0.5 rounded bg-slate-800 text-[10px]">#meeting-followups</span>
+            </div>
+            <div class="text-slate-200 font-medium">${act.clarification_prompt || act.action_description}</div>
+            <div class="text-slate-400 text-[11px]">Target: <strong class="text-slate-200">${act.assigned_to || act.speaker}</strong></div>
+          </div>`;
+      }
+
+      document.getElementById('modalIcon').innerText = icon;
+      document.getElementById('modalTitle').innerText = `Dispatching ${act.id} via MCP`;
+      document.getElementById('dispatchModal').classList.remove('hidden');
+    }
+
+    function closeModal() {
+      document.getElementById('dispatchModal').classList.add('hidden');
+      selectedActionForDispatch = null;
+    }
+
+    function confirmDispatch() {
+      if (!selectedActionForDispatch) return;
+      const id = selectedActionForDispatch.id;
+      closeModal();
+      showToast(`MCP Payload executed for ${id}!`);
+    }
+
+    function copyMarkdownReport() {
+      if (!currentAnalysisData) return;
+      const d = currentAnalysisData;
+      let md = `## 🦦 OtterActionGuard Meeting Brief (${d.meeting_id})\n`;
+      md += `- **Ready Actions:** ${d.ready_count} | **Gated Blockers:** ${d.blocked_count} | **ASR Fixes:** ${d.speech_corrections_made}\n\n`;
+      md += `### Action Items\n`;
+      d.actions.filter(a => a.status !== 'INFORMATIONAL_ONLY').forEach(a => {
+        md += `- **[${a.status}]** (${a.assigned_to || 'Unassigned'}): ${a.raw_statement}`;
+        if (a.prerequisite_condition) md += ` *(Gated on: ${a.prerequisite_condition})*`;
+        md += `\n`;
+      });
+      navigator.clipboard.writeText(md).then(() => showToast("Executive Markdown brief copied to clipboard!"));
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toastMsg').innerText = msg;
+      toast.classList.remove('hidden');
+      setTimeout(() => toast.classList.add('hidden'), 3200);
+    }
+
+    document.getElementById('transcriptInput').addEventListener('input', updateTurnCount);
+    loadSample(0);
+    updateMemoryBadge();
+  </script>
+</body>
+</html>

@@ -1,9 +1,14 @@
 # 🦦 OtterActionGuard
 
+[![Run Unit Tests](https://github.com/himadrimotwani/otter-action-guard/actions/workflows/tests.yml/badge.svg)](https://github.com/himadrimotwani/otter-action-guard/actions/workflows/tests.yml)
+[![Live Demo](https://img.shields.io/badge/Live_Demo-GitHub_Pages-2563eb?logo=googlechrome&logoColor=white)](https://himadrimotwani.github.io/otter-action-guard/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 > **Enterprise AI Meeting Agent for Action Disambiguation, Cross-Meeting State Tracking, Speech ASR Correction & Gated MCP Tool Execution**  
 > Resolving conditional commitments, acoustic transcription errors, and cross-meeting dependencies before dispatching to Jira, Slack, and ERP.
+
+### 🌐 [**Try the Live Interactive Web Demo in Your Browser →**](https://himadrimotwani.github.io/otter-action-guard/)
+*(Zero installation required — test Session 1 ➔ Session 2 cross-meeting prerequisite unlocking directly on desktop or mobile.)*
 
 ---
 
@@ -93,29 +98,22 @@ Evaluated across Nike global sourcing & tech architecture meeting transcripts:
 
 ## 🚀 Quickstart
 
+### 1. Live Interactive Browser Demo (No Setup Needed)
+Open the **[OtterActionGuard Web Demo](https://himadrimotwani.github.io/otter-action-guard/)** directly in your browser.
+1. Run **[1] Nike Sourcing Sync (Session 1)** $\rightarrow$ see gated blockers (`BLOCKED_ON_CONDITION`) and ASR jargon fixes (`"skew 902"` $\rightarrow$ `"SKU 902"`, `"bomb"` $\rightarrow$ `"BOM"`).
+2. Switch to **[2] Nike Standup Follow-Up (Session 2)** and run again $\rightarrow$ watch Otter Work Mode automatically unlock Session 1's blocked commitments!
+
+### 2. Run Locally (Python Backend + UI)
 OtterActionGuard requires **Python 3.9+** and has **zero third-party runtime dependencies**:
 
-### 1. Run the Interactive Web Dashboard
-Launch the standalone local dashboard and open `http://localhost:8080` in your browser:
-
 ```bash
+# Run the interactive local web dashboard (opens on http://localhost:8080)
 python3 app.py
-```
 
-*Interactive Features in the Web App:*
-- 👟 **Presets:** Load Session 1 (Nike Sourcing) to generate conditional commitments, then load Session 2 (Nike Standup) to watch the Cross-Meeting Temporal Engine automatically unlock the actions!
-- 🎙️ Drag-and-drop zone for `.wav`, `.mp3`, `.json`, or `.txt` meeting files.
-- 🧠 Live AI Chain-of-Thought reasoning stream.
-- 📊 Speaker talk-time distribution bars and AI coaching tips.
-- 🚀 Interactive "Simulate Dispatch" modal for Jira tickets, Slack notifications, and ERP line-items.
-
-### 2. Run the End-to-End CLI Demo
-```bash
+# Or run the end-to-end CLI benchmark & CoT demo
 python3 demo.py
-```
 
-### 3. Run the Unit Test Suite (100% Passing)
-```bash
+# Or run the full unit test suite
 python3 -m unittest discover tests
 ```
 
@@ -142,9 +140,12 @@ python3 demo.py
 
 ```
 otter-action-guard/
+├── .github/workflows/tests.yml    # Automated CI running unit tests & demo checks
+├── docs/
+│   └── index.html                 # Live client-side interactive browser demo (GitHub Pages)
 ├── README.md                      # Technical documentation & benchmarks
 ├── demo.py                        # Terminal CLI demonstration with CoT & Temporal Memory
-├── app.py                         # Standalone interactive Web Dashboard (port 8080)
+├── app.py                         # Standalone local Web Dashboard (port 8080)
 ├── requirements.txt               # Optional dependencies
 ├── data/
 │   └── sample_transcripts.json    # Nike sourcing (Sessions 1 & 2) & tech architecture datasets
